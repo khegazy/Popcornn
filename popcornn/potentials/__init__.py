@@ -26,9 +26,21 @@ def get_potential(potential, **kwargs):
     elif name == "harmonic":
         from .harmonic import HarmonicPotential
         return HarmonicPotential(**kwargs)
+    elif name == "mace":
+        from .mace import MacePotential
+        return MacePotential(**kwargs)
     elif name == "newtonnet":
         from .newtonnet import NewtonNetPotential
         return NewtonNetPotential(**kwargs)
+    elif name == "ani":
+        from .ani import AniPotential
+        return AniPotential(**kwargs)
+    elif name == "leftnet":
+        from .leftnet import LeftNetPotential
+        return LeftNetPotential(**kwargs)
+    elif name == "orb":
+        from .orb import OrbPotential
+        return OrbPotential(**kwargs)
     elif name == "escaip":
         from .escaip import EScAIPPotential
         return EScAIPPotential(**kwargs)
