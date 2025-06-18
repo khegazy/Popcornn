@@ -1,12 +1,17 @@
+import pytest
 import numpy as np
 import torch
 from ase import Atoms
+from ase.io import read
 
 from popcornn.tools import process_images
 
-
-def test_numpy():
-    images = process_images('images/wolfe.npy', device=torch.device('cpu'), dtype=torch.float32)
+@pytest.mark.parametrize(
+    'raw_images', 
+    [np.array([[1.133, -1.486], [-1.166, 1.477]]), 'images/wolfe.npy']
+)
+def test_numpy(raw_images):
+    images = process_images(raw_images, device=torch.device('cpu'), dtype=torch.float32)
     assert images.image_type is np.ndarray
     assert images.positions.shape == (2, 2)
     assert images.positions.device == torch.device('cpu')
@@ -24,12 +29,15 @@ def test_numpy():
     assert images.spin is None
     assert len(images) == 2
 
-    images = process_images('images/wolfe.npy', device=torch.device('cpu'), dtype=torch.float64)
+    images = process_images(raw_images, device=torch.device('cpu'), dtype=torch.float64)
     assert images.positions.dtype == torch.float64
 
-
-def test_torch():
-    images = process_images('images/wolfe.pt', device=torch.device('cpu'), dtype=torch.float32)
+@pytest.mark.parametrize(
+    'raw_images',
+    [torch.tensor([[1.133, -1.486], [-1.166, 1.477]]), 'images/wolfe.pt']
+)
+def test_torch(raw_images):
+    images = process_images(raw_images, device=torch.device('cpu'), dtype=torch.float32)
     assert images.image_type is torch.Tensor
     assert images.positions.shape == (2, 2)
     assert images.positions.device == torch.device('cpu')
@@ -47,12 +55,15 @@ def test_torch():
     assert images.spin is None
     assert len(images) == 2
 
-    images = process_images('images/wolfe.pt', device=torch.device('cpu'), dtype=torch.float64)
+    images = process_images(raw_images, device=torch.device('cpu'), dtype=torch.float64)
     assert images.positions.dtype == torch.float64
 
-
-def test_xyz():
-    images = process_images('images/OC20NEB.xyz', device=torch.device('cpu'), dtype=torch.float32)
+@pytest.mark.parametrize(
+    'raw_images',
+    [read('images/OC20NEB.xyz', index=':'), 'images/OC20NEB.xyz']
+)
+def test_xyz(raw_images):
+    images = process_images(raw_images, device=torch.device('cpu'), dtype=torch.float32)
     assert images.image_type is Atoms
     assert images.positions.shape == (2, 42)
     assert images.positions.device == torch.device('cpu')
@@ -140,6 +151,6 @@ def test_xyz():
     assert images.spin == 0
     assert len(images) == 2
 
-    images = process_images('images/OC20NEB.xyz', device=torch.device('cpu'), dtype=torch.float64)
+    images = process_images(raw_images, device=torch.device('cpu'), dtype=torch.float64)
     assert images.positions.dtype == torch.float64
 
