@@ -1,8 +1,11 @@
 import numpy as np
 import torch
+from ase import Atoms
+
 from popcornn.tools import process_images
 
-def test_wolfe_potential():
+
+def test_numpy():
     images = process_images('images/wolfe.npy', device=torch.device('cpu'), dtype=torch.float32)
     assert images.image_type is np.ndarray
     assert images.positions.shape == (2, 2)
@@ -19,10 +22,13 @@ def test_wolfe_potential():
     assert images.tags is None
     assert images.charge is None
     assert images.spin is None
+    assert len(images) == 2
 
     images = process_images('images/wolfe.npy', device=torch.device('cpu'), dtype=torch.float64)
     assert images.positions.dtype == torch.float64
 
+
+def test_torch():
     images = process_images('images/wolfe.pt', device=torch.device('cpu'), dtype=torch.float32)
     assert images.image_type is torch.Tensor
     assert images.positions.shape == (2, 2)
@@ -39,6 +45,7 @@ def test_wolfe_potential():
     assert images.tags is None
     assert images.charge is None
     assert images.spin is None
+    assert len(images) == 2
 
     images = process_images('images/wolfe.pt', device=torch.device('cpu'), dtype=torch.float64)
     assert images.positions.dtype == torch.float64
