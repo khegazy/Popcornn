@@ -82,7 +82,7 @@ def process_images(raw_images, device, dtype):
     image_type = type(raw_images[0])
     if image_type in [np.ndarray, list]:
         raw_images = torch.tensor(raw_images, device=device, dtype=dtype)
-        fix_positions = torch.zeros_like(raw_images, dtype=torch.bool)
+        fix_positions = torch.zeros_like(raw_images[0], dtype=torch.bool)
         processed_images = Images(
             image_type=image_type,
             positions=raw_images,
@@ -90,7 +90,7 @@ def process_images(raw_images, device, dtype):
         )
     elif image_type is torch.Tensor:
         raw_images = raw_images.to(device=device, dtype=dtype)
-        fix_positions = torch.zeros_like(raw_images, dtype=torch.bool)
+        fix_positions = torch.zeros_like(raw_images[0], dtype=torch.bool)
         processed_images = Images(
             image_type=image_type,
             positions=raw_images,
