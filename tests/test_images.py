@@ -418,3 +418,21 @@ def test_traj(raw_images):
 
     images = process_images(raw_images, device=torch.device('cpu'), dtype=torch.float64)
     assert images.positions.dtype == torch.float64
+
+
+@pytest.mark.parametrize(
+    'raw_images',
+    [read('images/T1x.xyz', index=':'), 'images/T1x.xyz']
+)
+def test_charge_spin(raw_images):
+    images = process_images(raw_images, device=torch.device('cpu'), dtype=torch.float32)
+    assert images.charge is not None
+    assert images.charge.shape == ()
+    assert images.charge.device == torch.device('cpu')
+    assert images.charge.dtype == torch.int
+    assert images.charge == 0
+    assert images.spin is not None
+    assert images.spin.shape == ()
+    assert images.spin.device == torch.device('cpu')
+    assert images.spin.dtype == torch.int
+    assert images.spin == 1
