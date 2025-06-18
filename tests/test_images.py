@@ -6,6 +6,33 @@ from ase.io import read
 
 from popcornn.tools import process_images
 
+
+@pytest.mark.parametrize(
+    'raw_images',
+    [[[1.133, -1.486], [-1.166, 1.477]], 'images/wolfe.json']
+)
+def test_json(raw_images):
+    images = process_images(raw_images, device=torch.device('cpu'), dtype=torch.float32)
+    assert images.image_type is list
+    assert images.positions.shape == (2, 2)
+    assert images.positions.device == torch.device('cpu')
+    assert images.positions.dtype == torch.float32
+    assert torch.allclose(images.positions, torch.tensor([[1.133, -1.486], [-1.166, 1.477]]))
+    assert images.fix_positions.shape == (2,)
+    assert images.fix_positions.device == torch.device('cpu')
+    assert images.fix_positions.dtype == torch.bool
+    assert torch.all(images.fix_positions == torch.zeros(2, dtype=torch.bool))
+    assert images.atomic_numbers is None
+    assert images.pbc is None
+    assert images.cell is None
+    assert images.tags is None
+    assert images.charge is None
+    assert images.spin is None
+    assert len(images) == 2
+
+    images = process_images(raw_images, device=torch.device('cpu'), dtype=torch.float64)
+    assert images.positions.dtype == torch.float64
+
 @pytest.mark.parametrize(
     'raw_images', 
     [np.array([[1.133, -1.486], [-1.166, 1.477]]), 'images/wolfe.npy']

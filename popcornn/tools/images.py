@@ -1,3 +1,4 @@
+import json
 import numpy as np
 import torch
 import ase
@@ -69,7 +70,10 @@ def process_images(raw_images, device, dtype):
     Process the images.
     """
     if type(raw_images) == str:
-        if raw_images.endswith('.npy'):
+        if raw_images.endswith('.json'):
+            with open(raw_images, 'r') as f:
+                raw_images = json.load(f)
+        elif raw_images.endswith('.npy'):
             raw_images = np.load(raw_images)
         elif raw_images.endswith('.pt'):
             raw_images = torch.load(raw_images)
