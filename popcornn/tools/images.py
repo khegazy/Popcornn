@@ -108,7 +108,7 @@ def process_images(raw_images, device, dtype):
         assert np.all(image.get_pbc() == raw_images[0].get_pbc() for image in raw_images), "All images must have the same pbc."
         pbc = torch.tensor(raw_images[0].get_pbc(), device=device, dtype=torch.bool)
         assert np.all(image.get_cell() == raw_images[0].get_cell() for image in raw_images), "All images must have the same cell."
-        cell = torch.tensor(raw_images[0].get_cell().array, device=device, dtype=torch.float)
+        cell = torch.tensor(raw_images[0].get_cell().array, device=device, dtype=dtype)
         assert np.all(image.constraints.__repr__() == raw_images[0].constraints.__repr__() for image in raw_images), "All images must have the same constraints."
         fix_positions = torch.zeros_like(positions[0], dtype=torch.bool)
         fix_positions = fix_positions.view(-1, 3)

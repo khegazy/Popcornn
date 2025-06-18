@@ -11,13 +11,17 @@ from popcornn.tools import process_images
     'raw_images',
     [[[1.133, -1.486], [-1.166, 1.477]], 'images/wolfe.json']
 )
-def test_json(raw_images):
-    images = process_images(raw_images, device=torch.device('cpu'), dtype=torch.float32)
+@pytest.mark.parametrize(
+    'dtype',
+    [torch.float32, torch.float64]
+)
+def test_list(raw_images, dtype):
+    images = process_images(raw_images, device=torch.device('cpu'), dtype=dtype)
     assert images.image_type is list
     assert images.positions.shape == (2, 2)
     assert images.positions.device == torch.device('cpu')
-    assert images.positions.dtype == torch.float32
-    assert torch.allclose(images.positions, torch.tensor([[1.133, -1.486], [-1.166, 1.477]]))
+    assert images.positions.dtype == dtype
+    assert torch.allclose(images.positions, torch.tensor([[1.133, -1.486], [-1.166, 1.477]], dtype=dtype))
     assert images.fix_positions.shape == (2,)
     assert images.fix_positions.device == torch.device('cpu')
     assert images.fix_positions.dtype == torch.bool
@@ -29,22 +33,23 @@ def test_json(raw_images):
     assert images.charge is None
     assert images.spin is None
     assert len(images) == 2
-
-    images = process_images(raw_images, device=torch.device('cpu'), dtype=torch.float64)
-    assert images.positions.dtype == torch.float64
 
 
 @pytest.mark.parametrize(
     'raw_images', 
     [np.array([[1.133, -1.486], [-1.166, 1.477]]), 'images/wolfe.npy']
 )
-def test_numpy(raw_images):
-    images = process_images(raw_images, device=torch.device('cpu'), dtype=torch.float32)
+@pytest.mark.parametrize(
+    'dtype',
+    [torch.float32, torch.float64]
+)
+def test_numpy(raw_images, dtype):
+    images = process_images(raw_images, device=torch.device('cpu'), dtype=dtype)
     assert images.image_type is np.ndarray
     assert images.positions.shape == (2, 2)
     assert images.positions.device == torch.device('cpu')
-    assert images.positions.dtype == torch.float32
-    assert torch.allclose(images.positions, torch.tensor([[1.133, -1.486], [-1.166, 1.477]]))
+    assert images.positions.dtype == dtype
+    assert torch.allclose(images.positions, torch.tensor([[1.133, -1.486], [-1.166, 1.477]], dtype=dtype))
     assert images.fix_positions.shape == (2,)
     assert images.fix_positions.device == torch.device('cpu')
     assert images.fix_positions.dtype == torch.bool
@@ -56,22 +61,23 @@ def test_numpy(raw_images):
     assert images.charge is None
     assert images.spin is None
     assert len(images) == 2
-
-    images = process_images(raw_images, device=torch.device('cpu'), dtype=torch.float64)
-    assert images.positions.dtype == torch.float64
 
 
 @pytest.mark.parametrize(
     'raw_images',
     [torch.tensor([[1.133, -1.486], [-1.166, 1.477]]), 'images/wolfe.pt']
 )
-def test_torch(raw_images):
-    images = process_images(raw_images, device=torch.device('cpu'), dtype=torch.float32)
+@pytest.mark.parametrize(
+    'dtype',
+    [torch.float32, torch.float64]
+)
+def test_torch(raw_images, dtype):
+    images = process_images(raw_images, device=torch.device('cpu'), dtype=dtype)
     assert images.image_type is torch.Tensor
     assert images.positions.shape == (2, 2)
     assert images.positions.device == torch.device('cpu')
-    assert images.positions.dtype == torch.float32
-    assert torch.allclose(images.positions, torch.tensor([[1.133, -1.486], [-1.166, 1.477]]))
+    assert images.positions.dtype == dtype
+    assert torch.allclose(images.positions, torch.tensor([[1.133, -1.486], [-1.166, 1.477]], dtype=dtype))
     assert images.fix_positions.shape == (2,)
     assert images.fix_positions.device == torch.device('cpu')
     assert images.fix_positions.dtype == torch.bool
@@ -84,20 +90,21 @@ def test_torch(raw_images):
     assert images.spin is None
     assert len(images) == 2
 
-    images = process_images(raw_images, device=torch.device('cpu'), dtype=torch.float64)
-    assert images.positions.dtype == torch.float64
-
 
 @pytest.mark.parametrize(
     'raw_images',
     [read('images/OC20NEB.xyz', index=':'), 'images/OC20NEB.xyz']
 )
-def test_xyz(raw_images):
-    images = process_images(raw_images, device=torch.device('cpu'), dtype=torch.float32)
+@pytest.mark.parametrize(
+    'dtype',
+    [torch.float32, torch.float64]
+)
+def test_xyz(raw_images, dtype):
+    images = process_images(raw_images, device=torch.device('cpu'), dtype=dtype)
     assert images.image_type is Atoms
     assert images.positions.shape == (2, 42)
     assert images.positions.device == torch.device('cpu')
-    assert images.positions.dtype == torch.float32
+    assert images.positions.dtype == dtype
     assert torch.allclose(images.positions, torch.tensor(
         [
             [
@@ -122,7 +129,8 @@ def test_xyz(raw_images):
                 26.668565  ,  7.13484263,  2.24811624, 24.82548202,  6.5237351 ,
                  2.95101175, 25.11474215
             ]
-        ]
+        ], 
+        dtype=dtype
     ))
     assert images.fix_positions.shape == (42,)
     assert images.fix_positions.device == torch.device('cpu')
@@ -153,13 +161,14 @@ def test_xyz(raw_images):
     assert images.cell is not None
     assert images.cell.shape == (3, 3)
     assert images.cell.device == torch.device('cpu')
-    assert images.cell.dtype == torch.float32
+    assert images.cell.dtype == dtype
     assert torch.allclose(images.cell, torch.tensor(
         [
             [ 9.04583549e+00,  0.00000000e+00,  5.53897714e-16],
             [-6.65912157e-16,  1.08751717e+01,  1.01654017e+00],
             [ 0.00000000e+00,  0.00000000e+00,  3.19663506e+01]
-        ]
+        ],
+        dtype=dtype
     ))
     assert images.tags is not None
     assert images.tags.shape == (14,)
@@ -181,20 +190,21 @@ def test_xyz(raw_images):
     assert images.spin == 0
     assert len(images) == 2
 
-    images = process_images(raw_images, device=torch.device('cpu'), dtype=torch.float64)
-    assert images.positions.dtype == torch.float64
-
 
 @pytest.mark.parametrize(
     'raw_images',
     [read('images/OC20NEB.traj', index=':'), 'images/OC20NEB.traj']
 )
-def test_traj(raw_images):
-    images = process_images(raw_images, device=torch.device('cpu'), dtype=torch.float32)
+@pytest.mark.parametrize(
+    'dtype',
+    [torch.float32, torch.float64]
+)
+def test_traj(raw_images, dtype):
+    images = process_images(raw_images, device=torch.device('cpu'), dtype=dtype)
     assert images.image_type is Atoms
     assert images.positions.shape == (10, 42)
     assert images.positions.device == torch.device('cpu')
-    assert images.positions.dtype == torch.float32
+    assert images.positions.dtype == dtype
     assert torch.allclose(images.positions, torch.tensor(
         [
             [
@@ -357,7 +367,8 @@ def test_traj(raw_images):
                  7.13484263e+00,  2.24811624e+00,  2.48254820e+01,
                  6.52373510e+00,  2.95101175e+00,  2.51147421e+01
             ]
-        ]
+        ],
+        dtype=dtype
     ))
     assert images.fix_positions.shape == (42,)
     assert images.fix_positions.device == torch.device('cpu')
@@ -388,13 +399,14 @@ def test_traj(raw_images):
     assert images.cell is not None
     assert images.cell.shape == (3, 3)
     assert images.cell.device == torch.device('cpu')
-    assert images.cell.dtype == torch.float32
+    assert images.cell.dtype == dtype
     assert torch.allclose(images.cell, torch.tensor(
         [
             [ 9.04583549e+00,  0.00000000e+00,  5.53897714e-16],
             [-6.65912157e-16,  1.08751717e+01,  1.01654017e+00],
             [ 0.00000000e+00,  0.00000000e+00,  3.19663506e+01]
-        ]
+        ],
+        dtype=dtype
     ))
     assert images.tags is not None
     assert images.tags.shape == (14,)
@@ -416,16 +428,9 @@ def test_traj(raw_images):
     assert images.spin == 0
     assert len(images) == 10
 
-    images = process_images(raw_images, device=torch.device('cpu'), dtype=torch.float64)
-    assert images.positions.dtype == torch.float64
 
-
-@pytest.mark.parametrize(
-    'raw_images',
-    [read('images/T1x.xyz', index=':'), 'images/T1x.xyz']
-)
 def test_charge_spin(raw_images):
-    images = process_images(raw_images, device=torch.device('cpu'), dtype=torch.float32)
+    images = process_images('images/T1x.xyz', device=torch.device('cpu'), dtype=torch.float32)
     assert images.charge is not None
     assert images.charge.shape == ()
     assert images.charge.device == torch.device('cpu')
