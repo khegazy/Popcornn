@@ -429,7 +429,7 @@ def test_traj(raw_images, dtype):
     assert len(images) == 10
 
 
-def test_charge_spin(raw_images):
+def test_charge_spin():
     images = process_images('images/T1x.xyz', device=torch.device('cpu'), dtype=torch.float32)
     assert images.charge is not None
     assert images.charge.shape == ()
