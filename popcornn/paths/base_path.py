@@ -73,8 +73,8 @@ class BasePath(torch.nn.Module):
     def __init__(
             self,
             images: Images,
-            device: torch.device = None,
-            dtype: torch.dtype = None,
+            device: torch.device,
+            dtype: torch.dtype,
             find_ts: bool = True,
         ) -> None:
         """
@@ -235,7 +235,7 @@ class BasePath(torch.nn.Module):
 
     def _reshape_in(self, time):
         if time is None:
-            time = torch.linspace(self.t_init.item(), self.t_final.item(), 101)
+            time = torch.linspace(self.t_init.item(), self.t_final.item(), 101, device=self.device, dtype=self.dtype)
         
         if len(time.shape) == 3:
             self._inp_reshaped = True
