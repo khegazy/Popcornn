@@ -40,6 +40,17 @@ def test_linear(dtype):
     )
 
 
+# TODO: Implement test for input reshape
+@pytest.mark.skip(reason="Input reshape tests are not implemented yet.")
+def test_input():
+    pass
+
+# TODO: Implement test for output reshape
+@pytest.mark.skip(reason="Output reshape tests are not implemented yet.")
+def test_output():
+    pass
+
+
 def test_unwrap():
     images = process_images('images/wolfe.json', device=torch.device('cpu'), dtype=torch.float32)
     path = get_path("linear", images=images, unwrap_positions=True, device=torch.device('cpu'), dtype=torch.float32)
