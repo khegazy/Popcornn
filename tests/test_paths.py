@@ -105,27 +105,27 @@ def test_mlp(dtype):
 
 
 # TODO: Implement test for input reshape
-@pytest.mark.skip(reason="Input reshape tests are not implemented yet.")
+@pytest.mark.skip(reason='Input reshape tests are not implemented yet.')
 def test_input():
     pass
 
 
 # TODO: Implement test for output reshape
-@pytest.mark.skip(reason="Output reshape tests are not implemented yet.")
+@pytest.mark.skip(reason='Output reshape tests are not implemented yet.')
 def test_output():
     pass
 
 
 def test_unwrap():
     images = process_images('images/wolfe.json', device=torch.device('cpu'), dtype=torch.float32)
-    path = get_path("linear", images=images, unwrap_positions=True, device=torch.device('cpu'), dtype=torch.float32)
+    path = get_path('linear', images=images, unwrap_positions=True, device=torch.device('cpu'), dtype=torch.float32)
     assert path.transform is None
     assert torch.allclose(
         path(torch.tensor([0.5])).positions,
         torch.tensor([[-0.0165, -0.0045]]),
         atol=1e-5
     )
-    path = get_path("linear", images=images, unwrap_positions=False, device=torch.device('cpu'), dtype=torch.float32)
+    path = get_path('linear', images=images, unwrap_positions=False, device=torch.device('cpu'), dtype=torch.float32)
     assert path.transform is None
     assert torch.allclose(
         path(torch.tensor([0.5])).positions,
@@ -134,7 +134,7 @@ def test_unwrap():
     )
     
     images = process_images('images/LJ13.xyz', device=torch.device('cpu'), dtype=torch.float32)
-    path = get_path("linear", images=images, unwrap_positions=True, device=torch.device('cpu'), dtype=torch.float32)
+    path = get_path('linear', images=images, unwrap_positions=True, device=torch.device('cpu'), dtype=torch.float32)
     assert path.transform is None
     assert torch.allclose(
         path(torch.tensor([0.5])).positions,
@@ -152,7 +152,7 @@ def test_unwrap():
         ),
         atol=1e-5
     )
-    path = get_path("linear", images=images, unwrap_positions=False, device=torch.device('cpu'), dtype=torch.float32)
+    path = get_path('linear', images=images, unwrap_positions=False, device=torch.device('cpu'), dtype=torch.float32)
     assert path.transform is None
     assert torch.allclose(
         path(torch.tensor([0.5])).positions,
@@ -172,7 +172,7 @@ def test_unwrap():
     )
     
     images = process_images('images/LJ35.xyz', device=torch.device('cpu'), dtype=torch.float32)
-    path = get_path("linear", images=images, unwrap_positions=True, device=torch.device('cpu'), dtype=torch.float32)
+    path = get_path('linear', images=images, unwrap_positions=True, device=torch.device('cpu'), dtype=torch.float32)
     assert path.transform is not None
     assert torch.allclose(
         path(torch.tensor([0.5])).positions,
@@ -209,7 +209,7 @@ def test_unwrap():
         ),
         atol=1e-5
     )
-    path = get_path("linear", images=images, unwrap_positions=False, device=torch.device('cpu'), dtype=torch.float32)
+    path = get_path('linear', images=images, unwrap_positions=False, device=torch.device('cpu'), dtype=torch.float32)
     assert path.transform is not None
     assert torch.allclose(
         path(torch.tensor([0.5])).positions,
