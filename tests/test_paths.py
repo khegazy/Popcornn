@@ -74,6 +74,35 @@ def test_mlp(dtype):
     assert torch.allclose(path_output.positions[-1], torch.tensor([-1.166, 1.477], dtype=dtype), atol=1e-5)
     assert not torch.allclose(path_output.positions[5], torch.tensor([-0.0165, -0.0045], dtype=dtype), atol=1e-5)
 
+    path = get_path('mlp', images=images, device=torch.device('cpu'), dtype=dtype)
+    assert path.mlp.__repr__() == (
+        'Sequential(\n'
+        '  (0): Linear(in_features=1, out_features=2, bias=True)\n'
+        '  (1): GELU(approximate=\'none\')\n'
+        '  (2): Linear(in_features=2, out_features=2, bias=True)\n'
+        ')'
+    )
+
+    path = get_path('mlp', n_embed=1, depth=2, activation='gelu', images=images, device=torch.device('cpu'), dtype=dtype)
+    assert path.mlp.__repr__() == (
+        'Sequential(\n'
+        '  (0): Linear(in_features=1, out_features=2, bias=True)\n'
+        '  (1): GELU(approximate=\'none\')\n'
+        '  (2): Linear(in_features=2, out_features=2, bias=True)\n'
+        ')'
+    )
+
+    path = get_path('mlp', n_embed=32, depth=3, activation='elu', images=images, device=torch.device('cpu'), dtype=dtype)
+    assert path.mlp.__repr__() == (
+        'Sequential(\n'
+        '  (0): Linear(in_features=1, out_features=64, bias=True)\n'
+        '  (1): ELU(alpha=1.0)\n'
+        '  (2): Linear(in_features=64, out_features=64, bias=True)\n'
+        '  (3): ELU(alpha=1.0)\n'
+        '  (4): Linear(in_features=64, out_features=2, bias=True)\n'
+        ')'
+    )
+
 
 # TODO: Implement test for input reshape
 @pytest.mark.skip(reason="Input reshape tests are not implemented yet.")
