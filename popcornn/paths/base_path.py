@@ -91,8 +91,8 @@ class BasePath(torch.nn.Module):
         self.neval = 0
         self.find_ts = find_ts
         self.potential = None
-        self.initial_position = images.positions[0].to(device)
-        self.final_position = images.positions[-1].to(device)
+        self.initial_position = images.positions[0]
+        self.final_position = images.positions[-1]
         self._inp_reshaped = None
         if images.pbc is not None and images.pbc.any():
             def transform(positions, **kwargs):
