@@ -175,3 +175,28 @@ def test_unwrap():
         ),
         atol=1e-5
     )
+
+
+@pytest.mark.parametrize(
+    'raw_images',
+    ['images/wolfe.json', 'images/LJ13.xyz', 'images/LJ35.xyz']
+)
+@pytest.mark.parametrize(
+    'path_name',
+    ['linear', 'mlp']
+)
+@pytest.mark.parametrize(
+    'dtype',
+    [torch.float32, torch.float64]
+)
+@pytest.mark.parametrize(
+    'unwrap_positions',
+    [True, False]
+)
+def test_velocity(raw_images, path_name, dtype, unwrap_positions):
+    images = process_images(raw_images, device=torch.device('cpu'), dtype=dtype)
+    path = get_path(path_name, images=images, unwrap_positions=unwrap_positions, device=torch.device('cpu'), dtype=dtype)
+    velocity = path(torch.tensor([0.5], dtype=dtype), return_velocities=True).velocities
+    assert velocity is not None
+    finite_difference = path(torch.tensor([0.5 - 1e-3, 0.5 + 1e-3], dtype=dtype)).positions.diff(dim=0) / (2 * 1e-3)
+    assert torch.allclose(velocity, finite_difference, atol=1e-3)
