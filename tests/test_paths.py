@@ -4,13 +4,14 @@ import torch
 from popcornn.tools import process_images
 from popcornn.paths import get_path
 
+
 @pytest.mark.parametrize(
     'dtype',
     [torch.float32, torch.float64]
 )
 def test_linear(dtype):
     images = process_images('images/wolfe.json', device=torch.device('cpu'), dtype=dtype)
-    path = get_path("linear", images=images, unwrap_positions=False, device=torch.device('cpu'), dtype=dtype)
+    path = get_path('linear', images=images, unwrap_positions=False, device=torch.device('cpu'), dtype=dtype)
     assert path.transform is None
 
     path_output = path()
@@ -40,10 +41,45 @@ def test_linear(dtype):
     )
 
 
+@pytest.mark.parametrize(
+    'dtype',
+    [torch.float32]#, torch.float64]
+)
+def test_mlp(dtype):
+    torch.manual_seed(0)  # For reproducibility
+    images = process_images('images/wolfe.json', device=torch.device('cpu'), dtype=dtype)
+    path = get_path('mlp', images=images, device=torch.device('cpu'), dtype=dtype)
+
+    path_output = path()
+    assert path_output.time.shape == (101, 1)
+    assert path_output.time.device == torch.device('cpu')
+    assert path_output.time.dtype == dtype
+    assert torch.allclose(path_output.time, torch.linspace(0, 1, 101, dtype=dtype).view(-1, 1))
+    assert path_output.positions.shape == (101, 2)
+    assert path_output.positions.device == torch.device('cpu')
+    assert path_output.positions.dtype == dtype
+    assert torch.allclose(path_output.positions[0], torch.tensor([1.133, -1.486], dtype=dtype), atol=1e-5)
+    assert torch.allclose(path_output.positions[-1], torch.tensor([-1.166, 1.477], dtype=dtype), atol=1e-5)
+    assert not torch.allclose(path_output.positions[50], torch.tensor([-0.0165, -0.0045], dtype=dtype), atol=1e-5)
+
+    path_output = path(torch.linspace(0, 1, 11, dtype=dtype))
+    assert path_output.time.shape == (11, 1)
+    assert path_output.time.device == torch.device('cpu')
+    assert path_output.time.dtype == dtype
+    assert torch.allclose(path_output.time, torch.linspace(0, 1, 11, dtype=dtype).view(-1, 1))
+    assert path_output.positions.shape == (11, 2)
+    assert path_output.positions.device == torch.device('cpu')
+    assert path_output.positions.dtype == dtype
+    assert torch.allclose(path_output.positions[0], torch.tensor([1.133, -1.486], dtype=dtype), atol=1e-5)
+    assert torch.allclose(path_output.positions[-1], torch.tensor([-1.166, 1.477], dtype=dtype), atol=1e-5)
+    assert not torch.allclose(path_output.positions[5], torch.tensor([-0.0165, -0.0045], dtype=dtype), atol=1e-5)
+
+
 # TODO: Implement test for input reshape
 @pytest.mark.skip(reason="Input reshape tests are not implemented yet.")
 def test_input():
     pass
+
 
 # TODO: Implement test for output reshape
 @pytest.mark.skip(reason="Output reshape tests are not implemented yet.")
