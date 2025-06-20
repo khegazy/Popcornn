@@ -1,7 +1,7 @@
 
 
-def get_potential(potential, **kwargs):
-    name = potential.lower()
+def get_potential(name, **kwargs):
+    name = name.lower()
     if name == "wolfe_schlegel":
         from .wolfe_schlegel import WolfeSchlegel
         return WolfeSchlegel(**kwargs)

@@ -22,7 +22,7 @@ class PotentialOutput():
 
 
 class BasePotential(nn.Module):
-    def __init__(self, images, device='cpu', dtype=None, add_azimuthal_dof=False, add_translation_dof=False, **kwargs) -> None:
+    def __init__(self, images, device, dtype, add_azimuthal_dof=False, add_translation_dof=False, **kwargs) -> None:
         super().__init__()
         self.atomic_numbers = images.atomic_numbers if images.atomic_numbers is not None else None
         self.n_atoms = len(images.atomic_numbers) if images.atomic_numbers is not None else None
@@ -31,13 +31,13 @@ class BasePotential(nn.Module):
         self.tags = images.tags if images.tags is not None else None
         self.charge = images.charge if images.charge is not None else None
         self.spin = images.spin if images.spin is not None else None
-        self.point_option = 0
-        self.point_arg = 0
-        if add_azimuthal_dof:
-            self.point_option = 1
-            self.point_arg = add_azimuthal_dof
-        elif add_translation_dof:
-            self.point_option = 2
+        self.point_option = 0  # TODO: remove this
+        self.point_arg = 0  # TODO: remove this
+        if add_azimuthal_dof:  # TODO: remove this
+            self.point_option = 1  # TODO: remove this
+            self.point_arg = add_azimuthal_dof  # TODO: remove this
+        elif add_translation_dof:  # TODO: remove this
+            self.point_option = 2  # TODO: remove this
         self.device = device
         self.dtype = dtype
         
