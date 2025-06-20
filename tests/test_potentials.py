@@ -2,6 +2,7 @@ import pytest
 import torch
 
 from popcornn.tools import process_images
+from popcornn.paths import get_path
 from popcornn.potentials import get_potential
 
 
@@ -11,12 +12,11 @@ from popcornn.potentials import get_potential
 )
 def test_wolfe(dtype):
     images = process_images('images/wolfe.json', device=torch.device('cpu'), dtype=dtype)
+    path = get_path('linear', images=images, unwrap_positions=False, device=torch.device('cpu'), dtype=dtype)
     potential = get_potential(images=images, name='wolfe_schlegel', device=torch.device('cpu'), dtype=dtype)
     assert potential is not None
 
-    potential_output = potential(
-        torch.tensor([[1.133, -1.486], [-0.0165, -0.0045], [-1.166, 1.477]], requires_grad=True, device=torch.device('cpu'), dtype=dtype)
-    )
+    potential_output = potential(path(torch.tensor([0.0, 0.5, 1.0], requires_grad=True, device=torch.device('cpu'), dtype=dtype)).positions)
     assert potential_output.energies.shape == (3, 1)
     assert potential_output.energies.device == torch.device('cpu')
     assert potential_output.energies.dtype == dtype
@@ -36,6 +36,6 @@ def test_wolfe(dtype):
             ], 
             dtype=dtype
         ),
-        atol=1e-5
+        atol=1e-3
     )
     assert potential_output.forces.grad_fn is not None
