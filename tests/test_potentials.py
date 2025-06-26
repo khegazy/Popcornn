@@ -56,6 +56,10 @@ def test_lennard_jones(dtype):
         torch.tensor([[-43.89940496348337], [-34.47869957670268], [-43.899404963483384]], dtype=dtype),
         atol=1e-5
     )
+    assert potential_output.energies_decomposed.shape == (3, 156)
+    assert potential_output.energies_decomposed.device == torch.device('cpu')
+    assert potential_output.energies_decomposed.dtype == dtype
+    assert torch.allclose(potential_output.energies_decomposed.sum(dim=-1, keepdim=True), potential_output.energies, atol=1e-5)
     assert potential_output.forces.shape == (3, 39)
     assert potential_output.forces.device == torch.device('cpu')
     assert potential_output.forces.dtype == dtype
@@ -113,6 +117,11 @@ def test_lennard_jones(dtype):
         atol=1e-3
     )
     assert potential_output.forces.grad_fn is not None
+    assert potential_output.forces_decomposed.shape == (3, 156, 39)
+    assert potential_output.forces_decomposed.device == torch.device('cpu')
+    assert potential_output.forces_decomposed.dtype == dtype
+    assert torch.allclose(potential_output.forces_decomposed.sum(dim=-2, keepdim=False), potential_output.forces, atol=1e-5)
+    assert potential_output.forces_decomposed.grad_fn is not None
 
     images = process_images('images/LJ35.xyz', device=torch.device('cpu'), dtype=dtype)
     path = get_path('linear', images=images, unwrap_positions=True, device=torch.device('cpu'), dtype=dtype)
@@ -125,6 +134,10 @@ def test_lennard_jones(dtype):
         torch.tensor([[-264.05734462066886], [-254.38057733122028], [-264.0573446193573]], dtype=dtype),
         atol=1e-3
     )
+    assert potential_output.energies_decomposed.shape == (3, 4352)
+    assert potential_output.energies_decomposed.device == torch.device('cpu')
+    assert potential_output.energies_decomposed.dtype == dtype
+    assert torch.allclose(potential_output.energies_decomposed.sum(dim=-1, keepdim=True), potential_output.energies, atol=1e-5)
     assert potential_output.forces.shape == (3, 105)
     assert potential_output.forces.device == torch.device('cpu')
     assert potential_output.forces.dtype == dtype
@@ -248,4 +261,9 @@ def test_lennard_jones(dtype):
         atol=1e-3
     )
     assert potential_output.forces.grad_fn is not None
+    assert potential_output.forces_decomposed.shape == (3, 4352, 105)
+    assert potential_output.forces_decomposed.device == torch.device('cpu')
+    assert potential_output.forces_decomposed.dtype == dtype
+    assert torch.allclose(potential_output.forces_decomposed.sum(dim=-2, keepdim=False), potential_output.forces, atol=1e-5)
+    assert potential_output.forces_decomposed.grad_fn is not None
 

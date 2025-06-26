@@ -1,4 +1,5 @@
 import torch
+from torch_geometric.utils import to_dense_batch
 from ase.data import covalent_radii
 
 from .base_potential import BasePotential, PotentialOutput
@@ -23,6 +24,7 @@ class LennardJones(BasePotential):
     
     def forward(self, positions):
         positions_3d = positions.view(-1, self.n_atoms, 3)
+        n_data, n_atoms, _ = positions_3d.shape
         graph_dict = radius_graph(
             positions=positions_3d,
             cell=self.cell,
@@ -32,29 +34,26 @@ class LennardJones(BasePotential):
         )
         r = graph_dict['edge_distance'].to(dtype=self.dtype)
         v = graph_dict['edge_distance_vec'].to(dtype=self.dtype)
-        # energies_decomposed = 4 * self.epsilon * ((self.sigma / r) ** 12 - (self.sigma / r) ** 6)
-        energies_part = (
+        e = 0.5 * (
             4 * self.epsilon * ((self.sigma / r) ** 12 - (self.sigma / r) ** 6) 
-            - 4 * self.epsilon * (
-                (self.sigma / self.cutoff) ** 12 - (self.sigma / self.cutoff) ** 6
-            )
-        ).unsqueeze(-1)
-        # energies = torch.sum(energies_decomposed, dim=-1, keepdim=True)
-        energies = torch.zeros((len(positions_3d), 1), device=self.device, dtype=self.dtype)
-        energies.index_add_(0, graph_dict['edge_index'][1] // self.n_atoms, energies_part)
-        energies = energies / 2
+            - 4 * self.epsilon * ((self.sigma / self.cutoff) ** 12 - (self.sigma / self.cutoff) ** 6)
+        )
+        energies_decomposed, _ = to_dense_batch(e, batch=graph_dict['edge_index'][1] // n_atoms)
+        energies = torch.sum(energies_decomposed, dim=-1, keepdim=True)
 
-        forces_part = (
+        f = 0.5 * (
             -24 * self.epsilon * (2 * (self.sigma / r) ** 12 - (self.sigma / r) ** 6) / r ** 2
         ).unsqueeze(-1) * v
-        forces = torch.zeros((len(positions_3d) * self.n_atoms, 3), device=self.device, dtype=self.dtype)
-        forces.index_add_(0, graph_dict['edge_index'][1], forces_part)
-        forces = forces.view(len(positions_3d), self.n_atoms * 3)
-        # forces = self.calculate_conservative_forces(energies, positions)
-        # forces_decomposed = self.calculate_conservative_forces_decomposed(energies_decomposed, positions)
+        forces_decomposed = torch.zeros(len(f), n_atoms, 3, device=self.device, dtype=self.dtype)
+        forces_decomposed[torch.arange(len(f), device=self.device), graph_dict['edge_index'][0] % n_atoms] = -f
+        forces_decomposed[torch.arange(len(f), device=self.device), graph_dict['edge_index'][1] % n_atoms] = f
+        forces_decomposed, _ = to_dense_batch(forces_decomposed, batch=graph_dict['edge_index'][1] // n_atoms)
+        forces_decomposed = forces_decomposed.view(*forces_decomposed.shape[:-2], -1)
+        forces = torch.sum(forces_decomposed, dim=-2, keepdim=False)
+
         return PotentialOutput(
             energies=energies,
-            # energies_decomposed=energies_decomposed,
+            energies_decomposed=energies_decomposed,
             forces=forces,
-            # forces_decomposed=forces_decomposed
+            forces_decomposed=forces_decomposed
         )
