@@ -33,6 +33,7 @@ def output_to_atoms(output, ref_images):
             cell=ref_images.cell.detach().cpu().numpy(),
             constraint=ase.constraints.FixAtoms(mask=ref_images.fix_positions.detach().cpu().numpy()),
             tags=ref_images.tags.detach().cpu().numpy(),
+            info={'charge': ref_images.charge.item(), 'spin': ref_images.spin.item()},
         )
         calc = SinglePointCalculator(
             atoms,
