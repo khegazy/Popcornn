@@ -12,7 +12,7 @@ from popcornn.potentials import get_potential
 )
 def test_wolfe(dtype):
     images = process_images('images/wolfe.json', device=torch.device('cpu'), dtype=dtype)
-    path = get_path('linear', images=images, unwrap_positions=False, device=torch.device('cpu'), dtype=dtype)
+    path = get_path('linear', images=images, device=torch.device('cpu'), dtype=dtype)
     potential = get_potential('wolfe_schlegel',images=images, device=torch.device('cpu'), dtype=dtype)
 
     potential_output = potential(path(torch.tensor([0.0, 0.5, 1.0], requires_grad=True, device=torch.device('cpu'), dtype=dtype)).positions)
@@ -46,7 +46,7 @@ def test_wolfe(dtype):
 )
 def test_lennard_jones(dtype):
     images = process_images('images/LJ13.xyz', device=torch.device('cpu'), dtype=dtype)
-    path = get_path('linear', images=images, unwrap_positions=False, device=torch.device('cpu'), dtype=dtype)
+    path = get_path('linear', images=images, device=torch.device('cpu'), dtype=dtype)
     potential = get_potential('lennard_jones', images=images, device=torch.device('cpu'), dtype=dtype)
     potential_output = potential(path(torch.tensor([0.0, 0.5, 1.0], requires_grad=True, device=torch.device('cpu'), dtype=dtype)).positions)
     assert potential_output.energies.shape == (3, 1)
@@ -124,7 +124,7 @@ def test_lennard_jones(dtype):
     assert potential_output.forces_decomposed.grad_fn is not None
 
     images = process_images('images/LJ35.xyz', device=torch.device('cpu'), dtype=dtype)
-    path = get_path('linear', images=images, unwrap_positions=True, device=torch.device('cpu'), dtype=dtype)
+    path = get_path('linear', images=images, device=torch.device('cpu'), dtype=dtype)
     potential = get_potential('lennard_jones', images=images, device=torch.device('cpu'), dtype=dtype)
     potential_output = potential(path(torch.tensor([0.0, 0.5, 1.0], requires_grad=True, device=torch.device('cpu'), dtype=dtype)).positions)
     assert potential_output.energies.shape == (3, 1)

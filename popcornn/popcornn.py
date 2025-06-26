@@ -23,6 +23,7 @@ class Popcornn:
     def __init__(
             self, 
             images: list[Atoms],
+            unwrap_positions: bool = True,
             path_params: dict[str, Any] = {},
             num_record_points: int = 101,
             output_dir: str | None = None,
@@ -35,6 +36,7 @@ class Popcornn:
 
         Args:
             images (list[Atoms]): List of ASE Atoms objects representing the images.
+            unwrap_positions (bool): Whether to unwrap the positions of the images. Default is True.
             path_params (dict[str, Any]): Parameters for the path prediction method.
             num_record_points (int): Number of points to record along the path when returning and saving the optimized path.
             output_dir (str | None): Directory to save the output files. If None, no files will be saved.
@@ -62,7 +64,7 @@ class Popcornn:
             torch.manual_seed(seed)
 
         # Process images
-        self.images = process_images(images, device=self.device, dtype=self.dtype)
+        self.images = process_images(images, unwrap_positions=unwrap_positions, device=self.device, dtype=self.dtype)
 
         # Get path prediction method
         self.path = get_path(images=self.images, **path_params, device=self.device, dtype=self.dtype)

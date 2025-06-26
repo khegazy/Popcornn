@@ -11,7 +11,7 @@ from popcornn.paths import get_path
 )
 def test_linear(dtype):
     images = process_images('images/wolfe.json', device=torch.device('cpu'), dtype=dtype)
-    path = get_path('linear', images=images, unwrap_positions=False, device=torch.device('cpu'), dtype=dtype)
+    path = get_path('linear', images=images, device=torch.device('cpu'), dtype=dtype)
     assert path.transform is None
 
     path_output = path()
@@ -117,62 +117,8 @@ def test_output():
 
 
 def test_unwrap():
-    images = process_images('images/wolfe.json', device=torch.device('cpu'), dtype=torch.float32)
-    path = get_path('linear', images=images, unwrap_positions=True, device=torch.device('cpu'), dtype=torch.float32)
-    assert path.transform is None
-    assert torch.allclose(
-        path(torch.tensor([0.5])).positions,
-        torch.tensor([[-0.0165, -0.0045]]),
-        atol=1e-5
-    )
-    path = get_path('linear', images=images, unwrap_positions=False, device=torch.device('cpu'), dtype=torch.float32)
-    assert path.transform is None
-    assert torch.allclose(
-        path(torch.tensor([0.5])).positions,
-        torch.tensor([[-0.0165, -0.0045]]),
-        atol=1e-5
-    )
-    
-    images = process_images('images/LJ13.xyz', device=torch.device('cpu'), dtype=torch.float32)
-    path = get_path('linear', images=images, unwrap_positions=True, device=torch.device('cpu'), dtype=torch.float32)
-    assert path.transform is None
-    assert torch.allclose(
-        path(torch.tensor([0.5])).positions,
-        torch.tensor(
-            [[ 
-                 0.28877036, -0.68072619,  0.75120193, -0.40122753, -0.97341411,
-                 0.00727275,  0.28339309, -0.69389574, -0.737692  , -0.68785098,
-                -0.27898974,  0.74945955,  0.68677095,  0.29317372,  0.73943439,
-                -0.28339309,  0.69389574,  0.737692  , -0.68677095, -0.29317372,
-                -0.73943439,  0.97341411, -0.40122753,  0.00281924, -0.97341411,
-                 0.40122753, -0.00281924,  0.68785098,  0.27898974, -0.74945955,
-                -0.28877036,  0.68072619, -0.75120193,  0.40122753,  0.97341411,
-                -0.00727275,  0.        ,  0.        ,  0.        
-            ]]
-        ),
-        atol=1e-5
-    )
-    path = get_path('linear', images=images, unwrap_positions=False, device=torch.device('cpu'), dtype=torch.float32)
-    assert path.transform is None
-    assert torch.allclose(
-        path(torch.tensor([0.5])).positions,
-        torch.tensor(
-            [[ 
-                 0.28877036, -0.68072619,  0.75120193, -0.40122753, -0.97341411,
-                 0.00727275,  0.28339309, -0.69389574, -0.737692  , -0.68785098,
-                -0.27898974,  0.74945955,  0.68677095,  0.29317372,  0.73943439,
-                -0.28339309,  0.69389574,  0.737692  , -0.68677095, -0.29317372,
-                -0.73943439,  0.97341411, -0.40122753,  0.00281924, -0.97341411,
-                 0.40122753, -0.00281924,  0.68785098,  0.27898974, -0.74945955,
-                -0.28877036,  0.68072619, -0.75120193,  0.40122753,  0.97341411,
-                -0.00727275,  0.        ,  0.        ,  0.        
-            ]]
-        ),
-        atol=1e-5
-    )
-    
-    images = process_images('images/LJ35.xyz', device=torch.device('cpu'), dtype=torch.float32)
-    path = get_path('linear', images=images, unwrap_positions=True, device=torch.device('cpu'), dtype=torch.float32)
+    images = process_images('images/LJ35.xyz', unwrap_positions=True, device=torch.device('cpu'), dtype=torch.float32)
+    path = get_path('linear', images=images, device=torch.device('cpu'), dtype=torch.float32)
     assert path.transform is not None
     assert torch.allclose(
         path(torch.tensor([0.5])).positions,
@@ -217,7 +163,9 @@ def test_unwrap():
         ),
         atol=1e-5
     )
-    path = get_path('linear', images=images, unwrap_positions=False, device=torch.device('cpu'), dtype=torch.float32)
+
+    images = process_images('images/LJ35.xyz', unwrap_positions=False, device=torch.device('cpu'), dtype=torch.float32)
+    path = get_path('linear', images=images, device=torch.device('cpu'), dtype=torch.float32)
     assert path.transform is not None
     assert torch.allclose(
         path(torch.tensor([0.5])).positions,
@@ -276,13 +224,9 @@ def test_unwrap():
     'dtype',
     [torch.float32, torch.float64]
 )
-@pytest.mark.parametrize(
-    'unwrap_positions',
-    [True, False]
-)
-def test_velocity(raw_images, path_name, dtype, unwrap_positions):
+def test_velocity(raw_images, path_name, dtype):
     images = process_images(raw_images, device=torch.device('cpu'), dtype=dtype)
-    path = get_path(path_name, images=images, unwrap_positions=unwrap_positions, device=torch.device('cpu'), dtype=dtype)
+    path = get_path(path_name, images=images, device=torch.device('cpu'), dtype=dtype)
     velocity = path(torch.tensor([0.5], dtype=dtype), return_velocities=True).velocities
     assert velocity is not None
     finite_difference = path(torch.tensor([0.5 - 1e-3, 0.5 + 1e-3], dtype=dtype)).positions.diff(dim=0) / (2 * 1e-3)

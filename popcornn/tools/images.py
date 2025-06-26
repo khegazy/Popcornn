@@ -1,3 +1,4 @@
+import logging
 import json
 import numpy as np
 import torch
@@ -5,6 +6,8 @@ import ase
 from ase.io import read
 from ase.constraints import FixAtoms
 from dataclasses import dataclass
+
+from popcornn.tools import unwrap_atoms
 
 
 @dataclass
@@ -65,9 +68,16 @@ class Images():
         return self
 
 
-def process_images(raw_images, device, dtype):
+def process_images(raw_images, device, dtype, unwrap_positions=True):
     """
     Process the images.
+
+    Parameters:
+    ----------
+    unwrap_positions: bool
+        Whether to unwrap the positions under periodic boundary conditions 
+        using minimum image convention, assuming no atoms move more than half 
+        the box length.
     """
     if type(raw_images) == str:
         if raw_images.endswith('.json'):
@@ -101,6 +111,12 @@ def process_images(raw_images, device, dtype):
             fix_positions=fix_positions,
         )
     elif issubclass(image_type, ase.Atoms):
+        if raw_images[0].pbc.any():
+            if unwrap_positions:
+                logging.warning("Unwrapping atom positions. Assuming no atoms move more than half the box length.")
+                raw_images = unwrap_atoms(raw_images)
+            else:
+                logging.warning("Not unwrapping atom positions. Assuming atoms are already unwrapped or do not travel across period boundaries.")
         assert np.all(image.get_positions().shape == raw_images[0].get_positions().shape for image in raw_images), "All images must have the same shape."
         positions = torch.tensor([image.get_positions().flatten() for image in raw_images], device=device, dtype=dtype)
         assert np.all(image.get_atomic_numbers() == raw_images[0].get_atomic_numbers() for image in raw_images), "All images must have the same atomic atomic_numbers."

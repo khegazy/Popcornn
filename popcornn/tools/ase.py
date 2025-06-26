@@ -1,6 +1,8 @@
 import numpy as np
 import torch
 import ase
+from ase import Atoms
+from ase.geometry import find_mic
 from ase.calculators.singlepoint import SinglePointCalculator
 from fairchem.core.graph.compute import generate_graph
 from fairchem.core.datasets import data_list_collater
@@ -87,6 +89,25 @@ def wrap_positions(
     fractional[:, pbc] = fractional[:, pbc] % 1.0 - shift[pbc]
 
     return torch.matmul(fractional, cell).view(*positions.shape)
+
+def unwrap_atoms(
+        images: list[Atoms],
+    ) -> list[Atoms]:
+    """
+    Unwrap atoms in a list of ASE Atoms objects.
+    This function ensures that the positions of atoms in consecutive images
+    are consistent by applying the minimum image convention (MIC).
+    """
+    for i in range(len(images) - 1):
+        positions_i = images[i].get_positions()
+        positions_f = images[i + 1].get_positions()
+        cell = images[i].get_cell()
+        pbc = images[i].get_pbc()
+
+        # Unwrap positions
+        diff = find_mic(positions_f - positions_i, cell=cell, pbc=pbc)[0]
+        images[i + 1].set_positions(positions_i + diff)
+    return images
 
 # def radius_graph(
 #         positions: torch.Tensor,
