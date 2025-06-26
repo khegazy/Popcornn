@@ -32,8 +32,8 @@ class LennardJones(BasePotential):
             cutoff=self.cutoff,
             max_neighbors=-1,
         )
-        r = graph_dict['edge_distance'].to(dtype=self.dtype)
-        v = graph_dict['edge_distance_vec'].to(dtype=self.dtype)
+        r = graph_dict['edge_distance']
+        v = graph_dict['edge_distance_vec']
         e = 0.5 * (
             4 * self.epsilon * ((self.sigma / r) ** 12 - (self.sigma / r) ** 6) 
             - 4 * self.epsilon * ((self.sigma / self.cutoff) ** 12 - (self.sigma / self.cutoff) ** 6)
