@@ -36,6 +36,8 @@ def test_wolfe(dtype, device):
         torch.tensor([[-64.81812976863], [-0.04301175469875001], [-66.45448705023]], device=device, dtype=dtype),
         atol=1e-5
     )
+    assert potential_output.energies.grad_fn is not None
+    assert potential_output.energies_decomposed is None
     assert potential_output.forces.shape == (3, 2)
     assert potential_output.forces.device.type == device.type
     assert potential_output.forces.dtype == dtype
@@ -51,6 +53,7 @@ def test_wolfe(dtype, device):
         atol=1e-3
     )
     assert potential_output.forces.grad_fn is not None
+    assert potential_output.forces_decomposed is None
 
 
 @pytest.mark.parametrize(
@@ -77,10 +80,12 @@ def test_lennard_jones(dtype, device):
         torch.tensor([[image.get_potential_energy()] for image in raw_images], device=device, dtype=dtype),
         atol=1e-5
     )
+    assert potential_output.energies.grad_fn is not None
     assert potential_output.energies_decomposed.shape == (3, 156)
     assert potential_output.energies_decomposed.device.type == device.type
     assert potential_output.energies_decomposed.dtype == dtype
     assert torch.allclose(potential_output.energies_decomposed.sum(dim=-1, keepdim=True), potential_output.energies, atol=1e-5)
+    assert potential_output.energies_decomposed.grad_fn is not None
     assert potential_output.forces.shape == (3, 39)
     assert potential_output.forces.device.type == device.type
     assert potential_output.forces.dtype == dtype
@@ -110,10 +115,12 @@ def test_lennard_jones(dtype, device):
         torch.tensor([[image.get_potential_energy()] for image in raw_images], device=device, dtype=dtype),
         atol=1e-5
     )
+    assert potential_output.energies.grad_fn is not None
     assert potential_output.energies_decomposed.shape == (3, 4352)
     assert potential_output.energies_decomposed.device.type == device.type
     assert potential_output.energies_decomposed.dtype == dtype
     assert torch.allclose(potential_output.energies_decomposed.sum(dim=-1, keepdim=True), potential_output.energies, atol=1e-5)
+    assert potential_output.energies_decomposed.grad_fn is not None
     assert potential_output.forces.shape == (3, 105)
     assert potential_output.forces.device.type == device.type
     assert potential_output.forces.dtype == dtype
@@ -198,10 +205,12 @@ def test_repel(dtype, device):
         torch.tensor([[image.get_potential_energy()] for image in raw_images], device=device, dtype=dtype),
         atol=1e-5
     )
+    assert potential_output.energies.grad_fn is not None
     assert potential_output.energies_decomposed.shape == (3, 156)
     assert potential_output.energies_decomposed.device.type == device.type
     assert potential_output.energies_decomposed.dtype == dtype
     assert torch.allclose(potential_output.energies_decomposed.sum(dim=-1, keepdim=True), potential_output.energies, atol=1e-5)
+    assert potential_output.energies_decomposed.grad_fn is not None
     assert potential_output.forces.shape == (3, 39)
     assert potential_output.forces.device.type == device.type
     assert potential_output.forces.dtype == dtype
@@ -231,10 +240,12 @@ def test_repel(dtype, device):
         torch.tensor([[image.get_potential_energy()] for image in raw_images], device=device, dtype=dtype),
         atol=1e-5
     )
+    assert potential_output.energies.grad_fn is not None
     assert potential_output.energies_decomposed.shape == (3, 4352)
     assert potential_output.energies_decomposed.device.type == device.type
     assert potential_output.energies_decomposed.dtype == dtype
     assert torch.allclose(potential_output.energies_decomposed.sum(dim=-1, keepdim=True), potential_output.energies, atol=1e-5)
+    assert potential_output.energies_decomposed.grad_fn is not None
     assert potential_output.forces.shape == (3, 105)
     assert potential_output.forces.device.type == device.type
     assert potential_output.forces.dtype == dtype
@@ -280,6 +291,7 @@ def test_uma(dtype, device):
         torch.tensor([[image.get_potential_energy()] for image in raw_images], device=device, dtype=dtype),
         atol=1e-5
     )
+    assert potential_output.energies.grad_fn is not None
     assert potential_output.energies_decomposed is None
     assert potential_output.forces.shape == (3, 39)
     assert potential_output.forces.device.type == device.type
@@ -309,6 +321,7 @@ def test_uma(dtype, device):
         torch.tensor([[image.get_potential_energy()] for image in raw_images], device=device, dtype=dtype),
         atol=1e-5
     )
+    assert potential_output.energies.grad_fn is not None
     assert potential_output.energies_decomposed is None
     assert potential_output.forces.shape == (3, 42)
     assert potential_output.forces.device.type == device.type
