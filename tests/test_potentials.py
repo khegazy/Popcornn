@@ -23,6 +23,47 @@ from popcornn.potentials import get_potential
     'device',
     [torch.device('cpu'), torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')],
 )
+def test_muller_brown(dtype, device):
+    images = process_images('images/muller_brown.json', device=device, dtype=dtype)
+    path = get_path('linear', images=images, device=device, dtype=dtype)
+    potential = get_potential('muller_brown', images=images, device=device, dtype=dtype)
+
+    potential_output = potential(path(torch.tensor([0.0, 0.5, 1.0], requires_grad=True, device=device, dtype=dtype)).positions)
+    assert potential_output.energies.shape == (3, 1)
+    assert potential_output.energies.device.type == device.type
+    assert potential_output.energies.dtype == dtype
+    assert torch.allclose(potential_output.energies,
+        torch.tensor([[-146.69948920058778], [3.225535000493114], [-80.76774924875772]], device=device, dtype=dtype),
+        atol=1e-5
+    )
+    assert potential_output.energies.grad_fn is not None
+    assert potential_output.energies_decomposed is None
+    assert potential_output.forces.shape == (3, 2)
+    assert potential_output.forces.device.type == device.type
+    assert potential_output.forces.dtype == dtype
+    assert torch.allclose(potential_output.forces,
+        torch.tensor(
+            [
+                [0.0001873538288492682, -0.20449389471367851], 
+                [-63.037220140249005, -57.82076869131242], 
+                [-0.048943927961211386, -0.44871341799094555]
+            ], 
+            device=device, dtype=dtype
+        ),
+        atol=1e-3
+    )
+    assert potential_output.forces.grad_fn is not None
+    assert potential_output.forces_decomposed is None
+
+
+@pytest.mark.parametrize(
+    'dtype',
+    [torch.float32, torch.float64],
+)
+@pytest.mark.parametrize(
+    'device',
+    [torch.device('cpu'), torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')],
+)
 def test_wolfe(dtype, device):
     images = process_images('images/wolfe.json', device=device, dtype=dtype)
     path = get_path('linear', images=images, device=device, dtype=dtype)
