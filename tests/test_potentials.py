@@ -19,21 +19,25 @@ from popcornn.potentials import get_potential
     'dtype',
     [torch.float32, torch.float64],
 )
-def test_wolfe(dtype):
-    images = process_images('images/wolfe.json', device=torch.device('cpu'), dtype=dtype)
-    path = get_path('linear', images=images, device=torch.device('cpu'), dtype=dtype)
-    potential = get_potential('wolfe_schlegel',images=images, device=torch.device('cpu'), dtype=dtype)
+@pytest.mark.parametrize(
+    'device',
+    [torch.device('cpu'), torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')],
+)
+def test_wolfe(dtype, device):
+    images = process_images('images/wolfe.json', device=device, dtype=dtype)
+    path = get_path('linear', images=images, device=device, dtype=dtype)
+    potential = get_potential('wolfe_schlegel',images=images, device=device, dtype=dtype)
 
-    potential_output = potential(path(torch.tensor([0.0, 0.5, 1.0], requires_grad=True, device=torch.device('cpu'), dtype=dtype)).positions)
+    potential_output = potential(path(torch.tensor([0.0, 0.5, 1.0], requires_grad=True, device=device, dtype=dtype)).positions)
     assert potential_output.energies.shape == (3, 1)
-    assert potential_output.energies.device == torch.device('cpu')
+    assert potential_output.energies.device.type == device.type
     assert potential_output.energies.dtype == dtype
     assert torch.allclose(potential_output.energies, 
-        torch.tensor([[-64.81812976863], [-0.04301175469875001], [-66.45448705023]], dtype=dtype),
+        torch.tensor([[-64.81812976863], [-0.04301175469875001], [-66.45448705023]], device=device, dtype=dtype),
         atol=1e-5
     )
     assert potential_output.forces.shape == (3, 2)
-    assert potential_output.forces.device == torch.device('cpu')
+    assert potential_output.forces.device.type == device.type
     assert potential_output.forces.dtype == dtype
     assert torch.allclose(potential_output.forces,
         torch.tensor(
@@ -42,7 +46,7 @@ def test_wolfe(dtype):
                 [-2.614820315, -1.194996355], 
                 [-0.0003081600000115481, -0.06473332000001358]
             ], 
-            dtype=dtype
+            device=device, dtype=dtype
         ),
         atol=1e-3
     )
@@ -53,36 +57,40 @@ def test_wolfe(dtype):
     'dtype',
     [torch.float32, torch.float64],
 )
-def test_lennard_jones(dtype):
+@pytest.mark.parametrize(
+    'device',
+    [torch.device('cpu'), torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')],
+)
+def test_lennard_jones(dtype, device):
     raw_images = [read('images/LJ13.xyz', index=i) for i in (0, 1, 1)]
     interpolate(raw_images)
     for image in raw_images:
         image.calc = LennardJones()
-    images = process_images(raw_images, device=torch.device('cpu'), dtype=dtype)
-    path = get_path('linear', images=images, device=torch.device('cpu'), dtype=dtype)
-    potential = get_potential('lennard_jones', images=images, device=torch.device('cpu'), dtype=dtype)
-    potential_output = potential(path(torch.tensor([0.0, 0.5, 1.0], requires_grad=True, device=torch.device('cpu'), dtype=dtype)).positions)
+    images = process_images(raw_images, device=device, dtype=dtype)
+    path = get_path('linear', images=images, device=device, dtype=dtype)
+    potential = get_potential('lennard_jones', images=images, device=device, dtype=dtype)
+    potential_output = potential(path(torch.tensor([0.0, 0.5, 1.0], requires_grad=True, device=device, dtype=dtype)).positions)
     assert potential_output.energies.shape == (3, 1)
-    assert potential_output.energies.device == torch.device('cpu')
+    assert potential_output.energies.device.type == device.type
     assert potential_output.energies.dtype == dtype
     assert torch.allclose(potential_output.energies,
-        torch.tensor([[image.get_potential_energy()] for image in raw_images], dtype=dtype),
+        torch.tensor([[image.get_potential_energy()] for image in raw_images], device=device, dtype=dtype),
         atol=1e-5
     )
     assert potential_output.energies_decomposed.shape == (3, 156)
-    assert potential_output.energies_decomposed.device == torch.device('cpu')
+    assert potential_output.energies_decomposed.device.type == device.type
     assert potential_output.energies_decomposed.dtype == dtype
     assert torch.allclose(potential_output.energies_decomposed.sum(dim=-1, keepdim=True), potential_output.energies, atol=1e-5)
     assert potential_output.forces.shape == (3, 39)
-    assert potential_output.forces.device == torch.device('cpu')
+    assert potential_output.forces.device.type == device.type
     assert potential_output.forces.dtype == dtype
     assert torch.allclose(potential_output.forces,
-        torch.tensor([image.get_forces().flatten() for image in raw_images], dtype=dtype),
+        torch.tensor([image.get_forces().flatten() for image in raw_images], device=device, dtype=dtype),
         atol=1e-3
     )
     assert potential_output.forces.grad_fn is not None
     assert potential_output.forces_decomposed.shape == (3, 156, 39)
-    assert potential_output.forces_decomposed.device == torch.device('cpu')
+    assert potential_output.forces_decomposed.device.type == device.type
     assert potential_output.forces_decomposed.dtype == dtype
     assert torch.allclose(potential_output.forces_decomposed.sum(dim=-2, keepdim=False), potential_output.forces, atol=1e-5)
     assert potential_output.forces_decomposed.grad_fn is not None
@@ -91,31 +99,31 @@ def test_lennard_jones(dtype):
     interpolate(raw_images, mic=True)
     for image in raw_images:
         image.calc = LennardJones()
-    images = process_images(raw_images, device=torch.device('cpu'), dtype=dtype)
-    path = get_path('linear', images=images, device=torch.device('cpu'), dtype=dtype)
-    potential = get_potential('lennard_jones', images=images, device=torch.device('cpu'), dtype=dtype)
-    potential_output = potential(path(torch.tensor([0.0, 0.5, 1.0], requires_grad=True, device=torch.device('cpu'), dtype=dtype)).positions)
+    images = process_images(raw_images, device=device, dtype=dtype)
+    path = get_path('linear', images=images, device=device, dtype=dtype)
+    potential = get_potential('lennard_jones', images=images, device=device, dtype=dtype)
+    potential_output = potential(path(torch.tensor([0.0, 0.5, 1.0], requires_grad=True, device=device, dtype=dtype)).positions)
     assert potential_output.energies.shape == (3, 1)
-    assert potential_output.energies.device == torch.device('cpu')
+    assert potential_output.energies.device.type == device.type
     assert potential_output.energies.dtype == dtype
     assert torch.allclose(potential_output.energies,
-        torch.tensor([[image.get_potential_energy()] for image in raw_images], dtype=dtype),
+        torch.tensor([[image.get_potential_energy()] for image in raw_images], device=device, dtype=dtype),
         atol=1e-5
     )
     assert potential_output.energies_decomposed.shape == (3, 4352)
-    assert potential_output.energies_decomposed.device == torch.device('cpu')
+    assert potential_output.energies_decomposed.device.type == device.type
     assert potential_output.energies_decomposed.dtype == dtype
     assert torch.allclose(potential_output.energies_decomposed.sum(dim=-1, keepdim=True), potential_output.energies, atol=1e-5)
     assert potential_output.forces.shape == (3, 105)
-    assert potential_output.forces.device == torch.device('cpu')
+    assert potential_output.forces.device.type == device.type
     assert potential_output.forces.dtype == dtype
     assert torch.allclose(potential_output.forces,
-        torch.tensor([image.get_forces().flatten() for image in raw_images], dtype=dtype),
+        torch.tensor([image.get_forces().flatten() for image in raw_images], device=device, dtype=dtype),
         atol=1e-3
     )
     assert potential_output.forces.grad_fn is not None
     assert potential_output.forces_decomposed.shape == (3, 4352, 105)
-    assert potential_output.forces_decomposed.device == torch.device('cpu')
+    assert potential_output.forces_decomposed.device.type == device.type
     assert potential_output.forces_decomposed.dtype == dtype
     assert torch.allclose(potential_output.forces_decomposed.sum(dim=-2, keepdim=False), potential_output.forces, atol=1e-5)
     assert potential_output.forces_decomposed.grad_fn is not None
@@ -125,7 +133,11 @@ def test_lennard_jones(dtype):
     'dtype',
     [torch.float32, torch.float64],
 )
-def test_repel(dtype):
+@pytest.mark.parametrize(
+    'device',
+    [torch.device('cpu'), torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')],
+)
+def test_repel(dtype, device):
     class RepelCalculator(Calculator):
         '''
         Revised from ASE LennardJones Calculator to use the repulsive potential
@@ -175,31 +187,31 @@ def test_repel(dtype):
     interpolate(raw_images)
     for image in raw_images:
         image.calc = RepelCalculator()
-    images = process_images(raw_images, device=torch.device('cpu'), dtype=dtype)
-    path = get_path('linear', images=images, device=torch.device('cpu'), dtype=dtype)
-    potential = get_potential('repel', images=images, device=torch.device('cpu'), dtype=dtype)
-    potential_output = potential(path(torch.tensor([0.0, 0.5, 1.0], requires_grad=True, device=torch.device('cpu'), dtype=dtype)).positions)
+    images = process_images(raw_images, device=device, dtype=dtype)
+    path = get_path('linear', images=images, device=device, dtype=dtype)
+    potential = get_potential('repel', images=images, device=device, dtype=dtype)
+    potential_output = potential(path(torch.tensor([0.0, 0.5, 1.0], requires_grad=True, device=device, dtype=dtype)).positions)
     assert potential_output.energies.shape == (3, 1)
-    assert potential_output.energies.device == torch.device('cpu')
+    assert potential_output.energies.device.type == device.type
     assert potential_output.energies.dtype == dtype
     assert torch.allclose(potential_output.energies,
-        torch.tensor([[image.get_potential_energy()] for image in raw_images], dtype=dtype),
+        torch.tensor([[image.get_potential_energy()] for image in raw_images], device=device, dtype=dtype),
         atol=1e-5
     )
     assert potential_output.energies_decomposed.shape == (3, 156)
-    assert potential_output.energies_decomposed.device == torch.device('cpu')
+    assert potential_output.energies_decomposed.device.type == device.type
     assert potential_output.energies_decomposed.dtype == dtype
     assert torch.allclose(potential_output.energies_decomposed.sum(dim=-1, keepdim=True), potential_output.energies, atol=1e-5)
     assert potential_output.forces.shape == (3, 39)
-    assert potential_output.forces.device == torch.device('cpu')
+    assert potential_output.forces.device.type == device.type
     assert potential_output.forces.dtype == dtype
     assert torch.allclose(potential_output.forces,
-        torch.tensor([image.get_forces().flatten() for image in raw_images], dtype=dtype),
+        torch.tensor([image.get_forces().flatten() for image in raw_images], device=device, dtype=dtype),
         atol=1e-3
     )
     assert potential_output.forces.grad_fn is not None
     assert potential_output.forces_decomposed.shape == (3, 156, 39)
-    assert potential_output.forces_decomposed.device == torch.device('cpu')
+    assert potential_output.forces_decomposed.device.type == device.type
     assert potential_output.forces_decomposed.dtype == dtype
     assert torch.allclose(potential_output.forces_decomposed.sum(dim=-2, keepdim=False), potential_output.forces, atol=1e-5)
     assert potential_output.forces_decomposed.grad_fn is not None
@@ -208,31 +220,31 @@ def test_repel(dtype):
     interpolate(raw_images, mic=True)
     for image in raw_images:
         image.calc = RepelCalculator()
-    images = process_images(raw_images, device=torch.device('cpu'), dtype=dtype)
-    path = get_path('linear', images=images, device=torch.device('cpu'), dtype=dtype)
-    potential = get_potential('repel', images=images, device=torch.device('cpu'), dtype=dtype)
-    potential_output = potential(path(torch.tensor([0.0, 0.5, 1.0], requires_grad=True, device=torch.device('cpu'), dtype=dtype)).positions)
+    images = process_images(raw_images, device=device, dtype=dtype)
+    path = get_path('linear', images=images, device=device, dtype=dtype)
+    potential = get_potential('repel', images=images, device=device, dtype=dtype)
+    potential_output = potential(path(torch.tensor([0.0, 0.5, 1.0], requires_grad=True, device=device, dtype=dtype)).positions)
     assert potential_output.energies.shape == (3, 1)
-    assert potential_output.energies.device == torch.device('cpu')
+    assert potential_output.energies.device.type == device.type
     assert potential_output.energies.dtype == dtype
     assert torch.allclose(potential_output.energies,
-        torch.tensor([[image.get_potential_energy()] for image in raw_images], dtype=dtype),
+        torch.tensor([[image.get_potential_energy()] for image in raw_images], device=device, dtype=dtype),
         atol=1e-5
     )
     assert potential_output.energies_decomposed.shape == (3, 4352)
-    assert potential_output.energies_decomposed.device == torch.device('cpu')
+    assert potential_output.energies_decomposed.device.type == device.type
     assert potential_output.energies_decomposed.dtype == dtype
     assert torch.allclose(potential_output.energies_decomposed.sum(dim=-1, keepdim=True), potential_output.energies, atol=1e-5)
     assert potential_output.forces.shape == (3, 105)
-    assert potential_output.forces.device == torch.device('cpu')
+    assert potential_output.forces.device.type == device.type
     assert potential_output.forces.dtype == dtype
     assert torch.allclose(potential_output.forces,
-        torch.tensor([image.get_forces().flatten() for image in raw_images], dtype=dtype),
+        torch.tensor([image.get_forces().flatten() for image in raw_images], device=device, dtype=dtype),
         atol=1e-3
     )
     assert potential_output.forces.grad_fn is not None
     assert potential_output.forces_decomposed.shape == (3, 4352, 105)
-    assert potential_output.forces_decomposed.device == torch.device('cpu')
+    assert potential_output.forces_decomposed.device.type == device.type
     assert potential_output.forces_decomposed.dtype == dtype
     assert torch.allclose(potential_output.forces_decomposed.sum(dim=-2, keepdim=False), potential_output.forces, atol=1e-5)
     assert potential_output.forces_decomposed.grad_fn is not None
@@ -242,7 +254,11 @@ def test_repel(dtype):
     'dtype',
     [torch.float32, torch.float64],
 )
-def test_uma(dtype):
+@pytest.mark.parametrize(
+    'device',
+    [torch.device('cpu'), torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')],
+)
+def test_uma(dtype, device):
     if dtype == torch.float64:
         pytest.skip("UMA potential is not supported for float64 due to precision issues.")
 
@@ -250,27 +266,27 @@ def test_uma(dtype):
     interpolate(raw_images)
     for image in raw_images:
         image.calc = FAIRChemCalculator(
-            pretrained_mlip.get_predict_unit('uma-s-1', device='cpu'),
+            pretrained_mlip.get_predict_unit('uma-s-1', device=device.type),
             task_name='omol'
         )
-    images = process_images(raw_images, device=torch.device('cpu'), dtype=dtype)
-    path = get_path('linear', images=images, device=torch.device('cpu'), dtype=dtype)
-    potential = get_potential('uma', model_name='uma-s-1', task_name='omol', images=images, device=torch.device('cpu'), dtype=dtype)
-    potential_output = potential(path(torch.tensor([0.0, 0.5, 1.0], requires_grad=True, device=torch.device('cpu'), dtype=dtype)).positions)
+    images = process_images(raw_images, device=device, dtype=dtype)
+    path = get_path('linear', images=images, device=device, dtype=dtype)
+    potential = get_potential('uma', model_name='uma-s-1', task_name='omol', images=images, device=device, dtype=dtype)
+    potential_output = potential(path(torch.tensor([0.0, 0.5, 1.0], requires_grad=True, device=device, dtype=dtype)).positions)
     assert potential_output.energies.shape == (3, 1)
-    assert potential_output.energies.device == torch.device('cpu')
+    assert potential_output.energies.device.type == device.type
     assert potential_output.energies.dtype == dtype
     assert torch.allclose(potential_output.energies,
-        torch.tensor([[image.get_potential_energy()] for image in raw_images], dtype=dtype),
+        torch.tensor([[image.get_potential_energy()] for image in raw_images], device=device, dtype=dtype),
         atol=1e-5
     )
     assert potential_output.energies_decomposed is None
     assert potential_output.forces.shape == (3, 39)
-    assert potential_output.forces.device == torch.device('cpu')
+    assert potential_output.forces.device.type == device.type
     assert potential_output.forces.dtype == dtype
     assert torch.allclose(potential_output.forces,
-        torch.tensor([image.get_forces().flatten() for image in raw_images], dtype=dtype),
-        atol=1e-3
+        torch.tensor([image.get_forces().flatten() for image in raw_images], device=device, dtype=dtype),
+        atol=1e-3 if device.type == 'cpu' else 1e-2
     )
     assert potential_output.forces.grad_fn is not None
     assert potential_output.forces_decomposed is None
@@ -279,27 +295,27 @@ def test_uma(dtype):
     interpolate(raw_images)
     for image in raw_images:
         image.calc = FAIRChemCalculator(
-            pretrained_mlip.get_predict_unit('uma-s-1', device='cpu'),
+            pretrained_mlip.get_predict_unit('uma-s-1', device=device.type),
             task_name='oc20'
         )
-    images = process_images(raw_images, device=torch.device('cpu'), dtype=dtype)
-    path = get_path('linear', images=images, device=torch.device('cpu'), dtype=dtype)
-    potential = get_potential('uma', model_name='uma-s-1', task_name='oc20', images=images, device=torch.device('cpu'), dtype=dtype)
-    potential_output = potential(path(torch.tensor([0.0, 0.5, 1.0], requires_grad=True, device=torch.device('cpu'), dtype=dtype)).positions)
+    images = process_images(raw_images, device=device, dtype=dtype)
+    path = get_path('linear', images=images, device=device, dtype=dtype)
+    potential = get_potential('uma', model_name='uma-s-1', task_name='oc20', images=images, device=device, dtype=dtype)
+    potential_output = potential(path(torch.tensor([0.0, 0.5, 1.0], requires_grad=True, device=device, dtype=dtype)).positions)
     assert potential_output.energies.shape == (3, 1)
-    assert potential_output.energies.device == torch.device('cpu')
+    assert potential_output.energies.device.type == device.type
     assert potential_output.energies.dtype == dtype
     assert torch.allclose(potential_output.energies,
-        torch.tensor([[image.get_potential_energy()] for image in raw_images], dtype=dtype),
+        torch.tensor([[image.get_potential_energy()] for image in raw_images], device=device, dtype=dtype),
         atol=1e-5
     )
     assert potential_output.energies_decomposed is None
     assert potential_output.forces.shape == (3, 42)
-    assert potential_output.forces.device == torch.device('cpu')
+    assert potential_output.forces.device.type == device.type
     assert potential_output.forces.dtype == dtype
     assert torch.allclose(potential_output.forces * ~images.fix_positions,
-        torch.tensor([image.get_forces().flatten() for image in raw_images], dtype=dtype),
-        atol=1e-3
+        torch.tensor([image.get_forces().flatten() for image in raw_images], device=device, dtype=dtype),
+        atol=1e-3 if device.type == 'cpu' else 1e-2
     )
     assert potential_output.forces.grad_fn is not None
     assert potential_output.forces_decomposed is None

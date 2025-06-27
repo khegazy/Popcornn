@@ -15,17 +15,21 @@ from popcornn.tools import process_images
     'dtype',
     [torch.float32, torch.float64]
 )
-def test_list(raw_images, dtype):
-    images = process_images(raw_images, device=torch.device('cpu'), dtype=dtype)
+@pytest.mark.parametrize(
+    'device', 
+    [torch.device('cpu'), torch.device('cuda')] if torch.cuda.is_available() else [torch.device('cpu')]
+)
+def test_list(raw_images, dtype, device):
+    images = process_images(raw_images, device=device, dtype=dtype)
     assert images.image_type is list
     assert images.positions.shape == (2, 2)
-    assert images.positions.device == torch.device('cpu')
+    assert images.positions.device.type == device.type
     assert images.positions.dtype == dtype
-    assert torch.allclose(images.positions, torch.tensor([[1.133, -1.486], [-1.166, 1.477]], dtype=dtype))
+    assert torch.allclose(images.positions, torch.tensor([[1.133, -1.486], [-1.166, 1.477]], device=device, dtype=dtype))
     assert images.fix_positions.shape == (2,)
-    assert images.fix_positions.device == torch.device('cpu')
+    assert images.fix_positions.device.type == device.type
     assert images.fix_positions.dtype == torch.bool
-    assert torch.all(images.fix_positions == torch.zeros(2, dtype=torch.bool))
+    assert torch.all(images.fix_positions == torch.zeros(2, device=device, dtype=torch.bool))
     assert images.atomic_numbers is None
     assert images.pbc is None
     assert images.cell is None
@@ -43,17 +47,21 @@ def test_list(raw_images, dtype):
     'dtype',
     [torch.float32, torch.float64]
 )
-def test_numpy(raw_images, dtype):
-    images = process_images(raw_images, device=torch.device('cpu'), dtype=dtype)
+@pytest.mark.parametrize(
+    'device',
+    [torch.device('cpu'), torch.device('cuda')] if torch.cuda.is_available() else [torch.device('cpu')]
+)
+def test_numpy(raw_images, dtype, device):
+    images = process_images(raw_images, device=device, dtype=dtype)
     assert images.image_type is np.ndarray
     assert images.positions.shape == (2, 2)
-    assert images.positions.device == torch.device('cpu')
+    assert images.positions.device.type == device.type
     assert images.positions.dtype == dtype
-    assert torch.allclose(images.positions, torch.tensor([[1.133, -1.486], [-1.166, 1.477]], dtype=dtype))
+    assert torch.allclose(images.positions, torch.tensor([[1.133, -1.486], [-1.166, 1.477]], device=device, dtype=dtype))
     assert images.fix_positions.shape == (2,)
-    assert images.fix_positions.device == torch.device('cpu')
+    assert images.fix_positions.device.type == device.type
     assert images.fix_positions.dtype == torch.bool
-    assert torch.all(images.fix_positions == torch.zeros(2, dtype=torch.bool))
+    assert torch.all(images.fix_positions == torch.zeros(2, device=device, dtype=torch.bool))
     assert images.atomic_numbers is None
     assert images.pbc is None
     assert images.cell is None
@@ -71,17 +79,21 @@ def test_numpy(raw_images, dtype):
     'dtype',
     [torch.float32, torch.float64]
 )
-def test_torch(raw_images, dtype):
-    images = process_images(raw_images, device=torch.device('cpu'), dtype=dtype)
+@pytest.mark.parametrize(
+    'device', 
+    [torch.device('cpu'), torch.device('cuda')] if torch.cuda.is_available() else [torch.device('cpu')]
+)
+def test_torch(raw_images, dtype, device):
+    images = process_images(raw_images, device=device, dtype=dtype)
     assert images.image_type is torch.Tensor
     assert images.positions.shape == (2, 2)
-    assert images.positions.device == torch.device('cpu')
+    assert images.positions.device.type == device.type
     assert images.positions.dtype == dtype
-    assert torch.allclose(images.positions, torch.tensor([[1.133, -1.486], [-1.166, 1.477]], dtype=dtype))
+    assert torch.allclose(images.positions, torch.tensor([[1.133, -1.486], [-1.166, 1.477]], device=device, dtype=dtype))
     assert images.fix_positions.shape == (2,)
-    assert images.fix_positions.device == torch.device('cpu')
+    assert images.fix_positions.device.type == device.type
     assert images.fix_positions.dtype == torch.bool
-    assert torch.all(images.fix_positions == torch.zeros(2, dtype=torch.bool))
+    assert torch.all(images.fix_positions == torch.zeros(2, device=device, dtype=torch.bool))
     assert images.atomic_numbers is None
     assert images.pbc is None
     assert images.cell is None
@@ -99,11 +111,15 @@ def test_torch(raw_images, dtype):
     'dtype',
     [torch.float32, torch.float64]
 )
-def test_xyz(raw_images, dtype):
-    images = process_images(raw_images, device=torch.device('cpu'), dtype=dtype)
+@pytest.mark.parametrize(
+    'device',
+    [torch.device('cpu'), torch.device('cuda')] if torch.cuda.is_available() else [torch.device('cpu')]
+)
+def test_xyz(raw_images, dtype, device):
+    images = process_images(raw_images, device=device, dtype=dtype)
     assert images.image_type is Atoms
     assert images.positions.shape == (2, 42)
-    assert images.positions.device == torch.device('cpu')
+    assert images.positions.device.type == device.type
     assert images.positions.dtype == dtype
     assert torch.allclose(images.positions, torch.tensor(
         [
@@ -130,10 +146,10 @@ def test_xyz(raw_images, dtype):
                  2.95101175, 25.11474215
             ]
         ], 
-        dtype=dtype
+        device=device, dtype=dtype
     ))
     assert images.fix_positions.shape == (42,)
-    assert images.fix_positions.device == torch.device('cpu')
+    assert images.fix_positions.device.type == device.type
     assert images.fix_positions.dtype == torch.bool
     assert torch.all(images.fix_positions == torch.tensor(
         [ 
@@ -143,24 +159,24 @@ def test_xyz(raw_images, dtype):
             False, False, False, False, False, False, False, False, False,
             False, False, False, False, False, False
         ], 
-        dtype=torch.bool
+        device=device, dtype=torch.bool
     ))
     assert images.atomic_numbers is not None
     assert images.atomic_numbers.shape == (14,)
-    assert images.atomic_numbers.device == torch.device('cpu')
+    assert images.atomic_numbers.device.type == device.type
     assert images.atomic_numbers.dtype == torch.int
     assert torch.all(images.atomic_numbers == torch.tensor(
         [55, 55, 55, 55, 55, 55, 55, 55,  6,  1,  1,  1,  1,  8],
-        dtype=torch.int
+        device=device, dtype=torch.int
     ))
     assert images.pbc is not None
     assert images.pbc.shape == (3,)
-    assert images.pbc.device == torch.device('cpu')
+    assert images.pbc.device.type == device.type
     assert images.pbc.dtype == torch.bool
-    assert torch.all(images.pbc == torch.ones(3, dtype=torch.bool))
+    assert torch.all(images.pbc == torch.ones(3, device=device, dtype=torch.bool))
     assert images.cell is not None
     assert images.cell.shape == (3, 3)
-    assert images.cell.device == torch.device('cpu')
+    assert images.cell.device.type == device.type
     assert images.cell.dtype == dtype
     assert torch.allclose(images.cell, torch.tensor(
         [
@@ -168,24 +184,24 @@ def test_xyz(raw_images, dtype):
             [-6.65912157e-16,  1.08751717e+01,  1.01654017e+00],
             [ 0.00000000e+00,  0.00000000e+00,  3.19663506e+01]
         ],
-        dtype=dtype
+        device=device, dtype=dtype
     ))
     assert images.tags is not None
     assert images.tags.shape == (14,)
-    assert images.tags.device == torch.device('cpu')
+    assert images.tags.device.type == device.type
     assert images.tags.dtype == torch.int
     assert torch.all(images.tags == torch.tensor(
         [0, 0, 0, 0, 1, 1, 1, 0, 2, 2, 2, 2, 2, 2],
-        dtype=torch.int
+        device=device, dtype=torch.int
     ))
     assert images.charge is not None
     assert images.charge.shape == ()
-    assert images.charge.device == torch.device('cpu')
+    assert images.charge.device.type == device.type
     assert images.charge.dtype == torch.int
     assert images.charge == 0
     assert images.spin is not None
     assert images.spin.shape == ()
-    assert images.spin.device == torch.device('cpu')
+    assert images.spin.device.type == device.type
     assert images.spin.dtype == torch.int
     assert images.spin == 0
     assert len(images) == 2
@@ -199,11 +215,15 @@ def test_xyz(raw_images, dtype):
     'dtype',
     [torch.float32, torch.float64]
 )
-def test_traj(raw_images, dtype):
-    images = process_images(raw_images, device=torch.device('cpu'), dtype=dtype)
+@pytest.mark.parametrize(
+    'device',
+    [torch.device('cpu'), torch.device('cuda')] if torch.cuda.is_available() else [torch.device('cpu')]
+)
+def test_traj(raw_images, dtype, device):
+    images = process_images(raw_images, device=device, dtype=dtype)
     assert images.image_type is Atoms
     assert images.positions.shape == (10, 42)
-    assert images.positions.device == torch.device('cpu')
+    assert images.positions.device.type == device.type
     assert images.positions.dtype == dtype
     assert torch.allclose(images.positions, torch.tensor(
         [
@@ -368,10 +388,10 @@ def test_traj(raw_images, dtype):
                  6.52373510e+00,  2.95101175e+00,  2.51147421e+01
             ]
         ],
-        dtype=dtype
+        device=device, dtype=dtype
     ))
     assert images.fix_positions.shape == (42,)
-    assert images.fix_positions.device == torch.device('cpu')
+    assert images.fix_positions.device.type == device.type
     assert images.fix_positions.dtype == torch.bool
     assert torch.all(images.fix_positions == torch.tensor(
         [ 
@@ -381,24 +401,24 @@ def test_traj(raw_images, dtype):
             False, False, False, False, False, False, False, False, False,
             False, False, False, False, False, False
         ], 
-        dtype=torch.bool
+        device=device, dtype=torch.bool
     ))
     assert images.atomic_numbers is not None
     assert images.atomic_numbers.shape == (14,)
-    assert images.atomic_numbers.device == torch.device('cpu')
+    assert images.atomic_numbers.device.type == device.type
     assert images.atomic_numbers.dtype == torch.int
     assert torch.all(images.atomic_numbers == torch.tensor(
         [55, 55, 55, 55, 55, 55, 55, 55,  6,  1,  1,  1,  1,  8],
-        dtype=torch.int
+        device=device, dtype=torch.int
     ))
     assert images.pbc is not None
     assert images.pbc.shape == (3,)
-    assert images.pbc.device == torch.device('cpu')
+    assert images.pbc.device.type == device.type
     assert images.pbc.dtype == torch.bool
-    assert torch.all(images.pbc == torch.ones(3, dtype=torch.bool))
+    assert torch.all(images.pbc == torch.ones(3, device=device, dtype=torch.bool))
     assert images.cell is not None
     assert images.cell.shape == (3, 3)
-    assert images.cell.device == torch.device('cpu')
+    assert images.cell.device.type == device.type
     assert images.cell.dtype == dtype
     assert torch.allclose(images.cell, torch.tensor(
         [
@@ -406,39 +426,43 @@ def test_traj(raw_images, dtype):
             [-6.65912157e-16,  1.08751717e+01,  1.01654017e+00],
             [ 0.00000000e+00,  0.00000000e+00,  3.19663506e+01]
         ],
-        dtype=dtype
+        device=device, dtype=dtype
     ))
     assert images.tags is not None
     assert images.tags.shape == (14,)
-    assert images.tags.device == torch.device('cpu')
+    assert images.tags.device.type == device.type
     assert images.tags.dtype == torch.int
     assert torch.all(images.tags == torch.tensor(
         [0, 0, 0, 0, 1, 1, 1, 0, 2, 2, 2, 2, 2, 2],
-        dtype=torch.int
+        device=device, dtype=torch.int
     ))
     assert images.charge is not None
     assert images.charge.shape == ()
-    assert images.charge.device == torch.device('cpu')
+    assert images.charge.device.type == device.type
     assert images.charge.dtype == torch.int
     assert images.charge == 0
     assert images.spin is not None
     assert images.spin.shape == ()
-    assert images.spin.device == torch.device('cpu')
+    assert images.spin.device.type == device.type
     assert images.spin.dtype == torch.int
     assert images.spin == 0
     assert len(images) == 10
 
 
-def test_charge_spin():
-    images = process_images('images/T1x.xyz', device=torch.device('cpu'), dtype=torch.float32)
+@pytest.mark.parametrize(
+    'device',
+    [torch.device('cpu'), torch.device('cuda')] if torch.cuda.is_available() else [torch.device('cpu')]
+)
+def test_charge_spin(device):
+    images = process_images('images/T1x.xyz', device=device, dtype=torch.float32)
     assert images.charge is not None
     assert images.charge.shape == ()
-    assert images.charge.device == torch.device('cpu')
+    assert images.charge.device.type == device.type
     assert images.charge.dtype == torch.int
     assert images.charge == 0
     assert images.spin is not None
     assert images.spin.shape == ()
-    assert images.spin.device == torch.device('cpu')
+    assert images.spin.device.type == device.type
     assert images.spin.dtype == torch.int
     assert images.spin == 1
 

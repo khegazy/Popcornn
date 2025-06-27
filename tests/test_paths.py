@@ -9,70 +9,78 @@ from popcornn.paths import get_path
     'dtype',
     [torch.float32, torch.float64]
 )
-def test_linear(dtype):
-    images = process_images('images/wolfe.json', device=torch.device('cpu'), dtype=dtype)
-    path = get_path('linear', images=images, device=torch.device('cpu'), dtype=dtype)
+@pytest.mark.parametrize(
+    'device',
+    [torch.device('cpu'), torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')]
+)
+def test_linear(dtype, device):
+    images = process_images('images/wolfe.json', device=device, dtype=dtype)
+    path = get_path('linear', images=images, device=device, dtype=dtype)
     assert path.transform is None
 
     path_output = path()
     assert path_output.time.shape == (101, 1)
-    assert path_output.time.device == torch.device('cpu')
+    assert path_output.time.device.type == device.type
     assert path_output.time.dtype == dtype
-    assert torch.allclose(path_output.time, torch.linspace(0, 1, 101, dtype=dtype).view(-1, 1))
+    assert torch.allclose(path_output.time, torch.linspace(0, 1, 101, device=device, dtype=dtype).view(-1, 1))
     assert path_output.positions.shape == (101, 2)
-    assert path_output.positions.device == torch.device('cpu')
+    assert path_output.positions.device.type == device.type
     assert path_output.positions.dtype == dtype
     assert torch.allclose(path_output.positions, 
-        torch.stack([torch.linspace(1.133, -1.166, 101, dtype=dtype), torch.linspace(-1.486, 1.477, 101, dtype=dtype)], dim=1), 
+        torch.stack([torch.linspace(1.133, -1.166, 101, device=device, dtype=dtype), torch.linspace(-1.486, 1.477, 101, device=device, dtype=dtype)], dim=1), 
         atol=1e-5
     )
 
-    path_output = path(torch.linspace(0, 1, 11, dtype=dtype))
+    path_output = path(torch.linspace(0, 1, 11, device=device, dtype=dtype))
     assert path_output.time.shape == (11, 1)
-    assert path_output.time.device == torch.device('cpu')
+    assert path_output.time.device.type == device.type
     assert path_output.time.dtype == dtype
-    assert torch.allclose(path_output.time, torch.linspace(0, 1, 11, dtype=dtype).view(-1, 1))
+    assert torch.allclose(path_output.time, torch.linspace(0, 1, 11, device=device, dtype=dtype).view(-1, 1))
     assert path_output.positions.shape == (11, 2)
-    assert path_output.positions.device == torch.device('cpu')
+    assert path_output.positions.device.type == device.type
     assert path_output.positions.dtype == dtype
     assert torch.allclose(path_output.positions, 
-        torch.stack([torch.linspace(1.133, -1.166, 11, dtype=dtype), torch.linspace(-1.486, 1.477, 11, dtype=dtype)], dim=1), 
+        torch.stack([torch.linspace(1.133, -1.166, 11, device=device, dtype=dtype), torch.linspace(-1.486, 1.477, 11, device=device, dtype=dtype)], dim=1), 
         atol=1e-5
     )
 
 
 @pytest.mark.parametrize(
     'dtype',
-    [torch.float32]#, torch.float64]
+    [torch.float32, torch.float64]
 )
-def test_mlp(dtype):
+@pytest.mark.parametrize(
+    'device',
+    [torch.device('cpu'), torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')]
+)
+def test_mlp(dtype, device):
     torch.manual_seed(0)  # For reproducibility
-    images = process_images('images/wolfe.json', device=torch.device('cpu'), dtype=dtype)
-    path = get_path('mlp', images=images, device=torch.device('cpu'), dtype=dtype)
+    images = process_images('images/wolfe.json', device=device, dtype=dtype)
+    path = get_path('mlp', images=images, device=device, dtype=dtype)
 
     path_output = path()
     assert path_output.time.shape == (101, 1)
-    assert path_output.time.device == torch.device('cpu')
+    assert path_output.time.device.type == device.type
     assert path_output.time.dtype == dtype
-    assert torch.allclose(path_output.time, torch.linspace(0, 1, 101, dtype=dtype).view(-1, 1))
+    assert torch.allclose(path_output.time, torch.linspace(0, 1, 101, device=device, dtype=dtype).view(-1, 1))
     assert path_output.positions.shape == (101, 2)
-    assert path_output.positions.device == torch.device('cpu')
+    assert path_output.positions.device.type == device.type
     assert path_output.positions.dtype == dtype
-    assert torch.allclose(path_output.positions[0], torch.tensor([1.133, -1.486], dtype=dtype), atol=1e-5)
-    assert torch.allclose(path_output.positions[-1], torch.tensor([-1.166, 1.477], dtype=dtype), atol=1e-5)
-    assert not torch.allclose(path_output.positions[50], torch.tensor([-0.0165, -0.0045], dtype=dtype), atol=1e-5)
+    assert torch.allclose(path_output.positions[0], torch.tensor([1.133, -1.486], device=device, dtype=dtype), atol=1e-5)
+    assert torch.allclose(path_output.positions[-1], torch.tensor([-1.166, 1.477], device=device, dtype=dtype), atol=1e-5)
+    assert not torch.allclose(path_output.positions[50], torch.tensor([-0.0165, -0.0045], device=device, dtype=dtype), atol=1e-5)
 
-    path_output = path(torch.linspace(0, 1, 11, dtype=dtype))
+    path_output = path(torch.linspace(0, 1, 11, device=device, dtype=dtype))
     assert path_output.time.shape == (11, 1)
-    assert path_output.time.device == torch.device('cpu')
+    assert path_output.time.device.type == device.type
     assert path_output.time.dtype == dtype
-    assert torch.allclose(path_output.time, torch.linspace(0, 1, 11, dtype=dtype).view(-1, 1))
+    assert torch.allclose(path_output.time, torch.linspace(0, 1, 11, device=device, dtype=dtype).view(-1, 1))
     assert path_output.positions.shape == (11, 2)
-    assert path_output.positions.device == torch.device('cpu')
+    assert path_output.positions.device.type == device.type
     assert path_output.positions.dtype == dtype
-    assert torch.allclose(path_output.positions[0], torch.tensor([1.133, -1.486], dtype=dtype), atol=1e-5)
-    assert torch.allclose(path_output.positions[-1], torch.tensor([-1.166, 1.477], dtype=dtype), atol=1e-5)
-    assert not torch.allclose(path_output.positions[5], torch.tensor([-0.0165, -0.0045], dtype=dtype), atol=1e-5)
+    assert torch.allclose(path_output.positions[0], torch.tensor([1.133, -1.486], device=device, dtype=dtype), atol=1e-5)
+    assert torch.allclose(path_output.positions[-1], torch.tensor([-1.166, 1.477], device=device, dtype=dtype), atol=1e-5)
+    assert not torch.allclose(path_output.positions[5], torch.tensor([-0.0165, -0.0045], device=device, dtype=dtype), atol=1e-5)
 
     path = get_path('mlp', images=images, device=torch.device('cpu'), dtype=dtype)
     assert path.mlp.__repr__() == (
@@ -224,10 +232,14 @@ def test_unwrap():
     'dtype',
     [torch.float32, torch.float64]
 )
-def test_velocity(raw_images, path_name, dtype):
-    images = process_images(raw_images, device=torch.device('cpu'), dtype=dtype)
-    path = get_path(path_name, images=images, device=torch.device('cpu'), dtype=dtype)
-    velocity = path(torch.tensor([0.5], dtype=dtype), return_velocities=True).velocities
+@pytest.mark.parametrize(
+    'device',
+    [torch.device('cpu'), torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')]
+)
+def test_velocity(raw_images, path_name, dtype, device):
+    images = process_images(raw_images, device=device, dtype=dtype)
+    path = get_path(path_name, images=images, device=device, dtype=dtype)
+    velocity = path(torch.tensor([0.5], device=device, dtype=dtype), return_velocities=True).velocities
     assert velocity is not None
-    finite_difference = path(torch.tensor([0.5 - 1e-3, 0.5 + 1e-3], dtype=dtype)).positions.diff(dim=0) / (2 * 1e-3)
+    finite_difference = path(torch.tensor([0.5 - 1e-3, 0.5 + 1e-3], device=device, dtype=dtype)).positions.diff(dim=0) / (2 * 1e-3)
     assert torch.allclose(velocity, finite_difference, atol=1e-3)
