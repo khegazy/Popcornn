@@ -29,7 +29,10 @@ class UMAPotential(BasePotential):
         data = self.data_formatter(positions)
         pred = self.predictor.predict(data)
         self.n_eval += 1
-        energies = pred['energy'].unsqueeze(-1)
+        energies = (
+            pred['energy'].unsqueeze(-1)
+            .to(dtype=self.dtype)  # https://github.com/facebookresearch/fairchem/issues/1317
+        )
         forces = pred['forces'].view(*positions.shape)
         return PotentialOutput(energies=energies, forces=forces)
 
