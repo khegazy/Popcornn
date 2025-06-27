@@ -1,14 +1,16 @@
 import torch
+from torch_geometric.utils import to_dense_batch
 from ase.data import covalent_radii
 
 from .base_potential import BasePotential, PotentialOutput
-from popcornn.tools import wrap_positions
+from popcornn.tools import radius_graph
 
 class RepelPotential(BasePotential):
     def __init__(
             self, 
             alpha=1.7, 
             beta=0.01, 
+            cutoff=3.0,
             **kwargs,
         ):
         """
@@ -19,59 +21,54 @@ class RepelPotential(BasePotential):
 
         The potential is given by:
         E = sum_{i<j} exp(-alpha * (r_ij - r0_ij) / r0_ij) + beta * r0_ij / r_ij
-
-        No cutoff is used in this implementation.
+        where r_ij is the distance between atoms i and j, and r0_ij is the sum of their covalent radii.
 
         Parameters
         ----------
         alpha: exponential term decay factor
         beta: inverse term weight
+        cutoff: cutoff distance for the potential
         """
         super().__init__(**kwargs)
         self.alpha = alpha
         self.beta = beta
-        self.r0 = None
+        self.cutoff = cutoff
+        self.radii = torch.tensor([covalent_radii[n] for n in self.atomic_numbers], device=self.device, dtype=self.dtype)
     
     def forward(self, positions):
-        if self.r0 is None:
-            self.set_r0(self.atomic_numbers)
-            
         positions_3d = positions.view(-1, self.n_atoms, 3)
-        v = positions_3d[:, self.ind[0]] - positions_3d[:, self.ind[1]]
-        if self.pbc is not None and self.pbc.any():
-            v = wrap_positions(v, self.cell, self.pbc, center=1.0)
-        r = torch.norm(v, dim=-1)
-        energies_decomposed = (
-            torch.exp(-self.alpha * (r - self.r0) / self.r0) 
-            + self.beta * self.r0 / r
+        n_data, n_atoms, _ = positions_3d.shape
+        graph_dict = radius_graph(
+            positions=positions_3d,
+            cell=self.cell,
+            pbc=self.pbc,
+            cutoff=self.cutoff,
+            max_neighbors=-1,
         )
-        energies = energies_decomposed.sum(dim=1, keepdim=True) 
-        # forces_decomposed = self.calculate_conservative_forces_decomposed(energies_decomposed, positions)
-        de_dr = (
-            torch.exp(-self.alpha * (r - self.r0) / self.r0) * self.alpha / self.r0
-            + self.beta * self.r0 / r ** 2
+        r = graph_dict['edge_distance']
+        v = graph_dict['edge_distance_vec']
+        r0 = self.radii[graph_dict['edge_index'] % n_atoms].sum(dim=0)  # sum of covalent radii for each edge
+        e = 0.5 * (
+            (torch.exp(-self.alpha * (r - r0) / r0) + self.beta * r0 / r)
+            - (torch.exp(-self.alpha * (self.cutoff - r0) / r0) + self.beta * r0 / self.cutoff)
         )
-        de_dv = de_dr[:, :, None] * v / r[:, :, None]
-        forces_decomposed = torch.zeros(*energies_decomposed.shape, *positions_3d.shape[1:], device=self.device, dtype=self.dtype)
-        forces_decomposed[:, torch.arange(self.ind.shape[1], device=self.device), self.ind[0], :] = de_dv
-        forces_decomposed[:, torch.arange(self.ind.shape[1], device=self.device), self.ind[1], :] = -de_dv
-        forces_decomposed = forces_decomposed.view(*energies_decomposed.shape, *positions.shape[1:])
-        forces = forces_decomposed.sum(dim=1)
+        energies_decomposed, _ = to_dense_batch(e, batch=graph_dict['edge_index'][1] // n_atoms)
+        energies = torch.sum(energies_decomposed, dim=-1, keepdim=True)
+        
+        f = 0.5 * (
+            (- torch.exp(-self.alpha * (r - r0) / r0) * self.alpha / r0 / r - self.beta * r0 / r ** 3)
+        ).unsqueeze(-1) * v
+        forces_decomposed = torch.zeros(len(f), n_atoms, 3, device=self.device, dtype=self.dtype)
+        forces_decomposed[torch.arange(len(f), device=self.device), graph_dict['edge_index'][0] % n_atoms] = -f
+        forces_decomposed[torch.arange(len(f), device=self.device), graph_dict['edge_index'][1] % n_atoms] = f
+        forces_decomposed, _ = to_dense_batch(forces_decomposed, batch=graph_dict['edge_index'][1] // n_atoms)
+        forces_decomposed = forces_decomposed.view(*forces_decomposed.shape[:-2], -1)
+        forces = torch.sum(forces_decomposed, dim=-2, keepdim=False)
+
         return PotentialOutput(
             energies=energies,
             energies_decomposed=energies_decomposed,
             forces=forces,
             forces_decomposed=forces_decomposed,
         )
-
-    def set_r0(self, atomic_numbers):
-        """
-        Set the r0_ij values for the potential
-        """
-        radii = torch.tensor([covalent_radii[n] for n in atomic_numbers], device=self.device, dtype=self.dtype)
-        r0 = radii.view(-1, 1) + radii.view(1, -1)
-        self.ind = torch.triu_indices(r0.shape[0], r0.shape[1], offset=1, device=self.device)
-        # if self.fix_positions is not None:
-        #     self.ind = self.ind[:, ~(self.fix_positions[self.ind[0]] & self.fix_positions[self.ind[1]])]
-        self.r0 = r0[None, self.ind[0], self.ind[1]]
 

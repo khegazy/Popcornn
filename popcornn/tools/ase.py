@@ -220,6 +220,10 @@ def radius_graph(
         data_list.append(data)
     batch = data_list_collater(data_list, otf_graph=True)
 
+    # TODO: remove this when fairchem supports torch.float64
+    batch.pos = batch.pos.to(dtype=dtype)
+    batch.cell = batch.cell.to(dtype=dtype)
+
     graph_dict = generate_graph(
         batch,
         cutoff=cutoff,
@@ -228,11 +232,5 @@ def radius_graph(
         radius_pbc_version=2,
         pbc=batch.pbc,
     )
-
-    # TODO: remove this when fairchem supports torch.float64
-    graph_dict['edge_distance'] = graph_dict['edge_distance'].to(dtype=dtype)
-    graph_dict['edge_distance_vec'] = graph_dict['edge_distance_vec'].to(dtype=dtype)
-    graph_dict['cell_offsets'] = graph_dict['cell_offsets'].to(dtype=dtype)
-    graph_dict['offset_distances'] = graph_dict['offset_distances'].to(dtype=dtype)
 
     return graph_dict
