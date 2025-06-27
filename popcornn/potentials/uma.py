@@ -29,13 +29,13 @@ class UMAPotential(BasePotential):
         data = self.data_formatter(positions)
         pred = self.predictor.predict(data)
         self.n_eval += 1
-        energies = pred['energy'].unsqueeze(-1).to(dtype=self.dtype)
+        energies = pred['energy'].unsqueeze(-1)
         forces = pred['forces'].view(*positions.shape)
         return PotentialOutput(energies=energies, forces=forces)
 
 
     def load_model(self, model_name, task_name):
-        predictor = pretrained_mlip.get_predict_unit(model_name=model_name, device=self.device)
+        predictor = pretrained_mlip.get_predict_unit(model_name=model_name, device=self.device.type)
         calc = FAIRChemCalculator(predictor, task_name=task_name)
         calc.predictor.model.module.output_heads['energyandforcehead'].head.training = True
         return calc.predictor
@@ -55,8 +55,7 @@ class UMAPotential(BasePotential):
                 nedges=torch.tensor([0], device=self.device, dtype=torch.long),
                 charge=self.charge.unsqueeze(0),
                 spin=self.spin.unsqueeze(0),
-                # fixed=self.fix_positions.long(),
-                fixed=torch.zeros(self.n_atoms, device=self.device, dtype=torch.long),  # default fixed positions
+                fixed=torch.zeros_like(self.atomic_numbers, dtype=torch.long),
                 tags=self.tags.long(),
             )
             data.dataset = self.task_name
