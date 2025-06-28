@@ -108,7 +108,7 @@ class ODEintegrator(Metrics):
                 t_final=torch.tensor([1], device=self.device, dtype=self.dtype),
                 max_batch=max_batch,
                 error_calc_idx=0,
-                device=self.device,
+                device=self.device.type,
                 **kwargs
             )
         else:
@@ -130,8 +130,8 @@ class ODEintegrator(Metrics):
             path,
             ode_fxn_scales={},
             loss_scales={},
-            t_init=torch.tensor([0]),
-            t_final=torch.tensor([1]),
+            t_init=torch.tensor([0.]),
+            t_final=torch.tensor([1.]),
             times=None,
         ):
         # Update loss parameters
