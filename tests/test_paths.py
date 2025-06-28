@@ -274,3 +274,28 @@ def test_set_potential(path_name, dtype, device):
     path.set_potential(potential)
     assert path.potential is not None
     path_output = path(torch.tensor([0.5], requires_grad=True, device=device, dtype=dtype), return_energies=True)
+    assert path_output.energies is not None
+    assert path_output.energies.shape == (1, 1)
+    assert path_output.energies.device.type == device.type
+    assert path_output.energies.dtype == dtype
+    assert torch.allclose(
+        path_output.energies,
+        potential(path(torch.tensor([0.5], requires_grad=True, device=device, dtype=dtype)).positions).energies,
+        atol=1e-5
+    )
+    assert path_output.energies.requires_grad is True
+    with pytest.raises(ValueError, match='Potential MullerBrown cannot calculate energies_decomposed'):
+        path(torch.tensor([0.5], requires_grad=True, device=device, dtype=dtype), return_energies_decomposed=True)
+    path_output = path(torch.tensor([0.5], requires_grad=True, device=device, dtype=dtype), return_forces=True)
+    assert path_output.forces is not None
+    assert path_output.forces.shape == (1, 2)
+    assert path_output.forces.device.type == device.type
+    assert path_output.forces.dtype == dtype
+    assert torch.allclose(
+        path_output.forces,
+        potential(path(torch.tensor([0.5], requires_grad=True, device=device, dtype=dtype)).positions).forces,
+        atol=1e-5
+    )
+    assert path_output.forces.requires_grad is True
+    with pytest.raises(ValueError, match='Potential MullerBrown cannot calculate forces_decomposed'):
+        path(torch.tensor([0.5], requires_grad=True, device=device, dtype=dtype), return_forces_decomposed=True)
