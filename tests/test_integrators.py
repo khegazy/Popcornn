@@ -28,8 +28,7 @@ def test_integral(dtype, device):
     path.set_potential(potential)
     integrator = ODEintegrator(path_ode_names='projected_variable_reaction_energy', device=device, dtype=dtype)
     path_integral = integrator.integrate_path(path, t_init=torch.tensor([0.], device=device, dtype=dtype), t_final=torch.tensor([1.], device=device, dtype=dtype))
-    assert torch.allclose(path_integral.loss, 
-        torch.tensor(234.27849339874268, device=device, dtype=dtype), atol=1e-2)  # TODO: investigate why this is not close enough
+    assert torch.allclose(path_integral.loss, torch.tensor(234.27849339874268, device=device, dtype=dtype), atol=1e-5)  # TODO: investigate why this is not close enough
 
     images = process_images('images/wolfe.json', device=device, dtype=dtype)
     # path = get_path('linear', images=images, device=device, dtype=dtype)  # TODO: make this integration works even it doesn't have trainable parameters
@@ -40,8 +39,16 @@ def test_integral(dtype, device):
     path.set_potential(potential)
     integrator = ODEintegrator(path_ode_names='projected_variable_reaction_energy', device=device, dtype=dtype)
     path_integral = integrator.integrate_path(path, t_init=torch.tensor([0.], device=device, dtype=dtype), t_final=torch.tensor([1.], device=device, dtype=dtype))
-    assert torch.allclose(path_integral.loss, 
-        torch.tensor(131.19240801706766, device=device, dtype=dtype), atol=1e-5)
+    assert torch.allclose(path_integral.loss, torch.tensor(131.19240801706766, device=device, dtype=dtype), atol=1e-5)
 
-
+    images = process_images('images/LJ13.xyz', device=device, dtype=dtype)
+    # path = get_path('linear', images=images, device=device, dtype=dtype)
+    path = get_path('mlp', images=images, device=device, dtype=dtype)
+    for param in path.parameters():
+        param.data.zero_()  # Initialize parameters to zero for testing
+    potential = get_potential('lennard_jones', images=images, device=device, dtype=dtype)
+    path.set_potential(potential)
+    integrator = ODEintegrator(path_ode_names='projected_variable_reaction_energy', device=device, dtype=dtype)
+    path_integral = integrator.integrate_path(path, t_init=torch.tensor([0.], device=device, dtype=dtype), t_final=torch.tensor([1.], device=device, dtype=dtype))
+    assert torch.allclose(path_integral.loss, torch.tensor(18.8414107735614, device=device, dtype=dtype), atol=1e-5)
 
