@@ -12,9 +12,12 @@ from popcornn.potentials import get_potential
 )
 @pytest.mark.parametrize(
     'device',
-    [torch.device('cpu'), torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')]
+    [torch.device('cpu'), torch.device('cuda')]
 )
 def test_linear(dtype, device):
+    if device.type == 'cuda' and not torch.cuda.is_available():
+        pytest.skip(reason='CUDA is not available, skipping test.')
+
     images = process_images('images/muller_brown.json', device=device, dtype=dtype)
     path = get_path('linear', images=images, device=device, dtype=dtype)
     assert path.transform is None
@@ -52,9 +55,12 @@ def test_linear(dtype, device):
 )
 @pytest.mark.parametrize(
     'device',
-    [torch.device('cpu'), torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')]
+    [torch.device('cpu'), torch.device('cuda')]
 )
 def test_mlp(dtype, device):
+    if device.type == 'cuda' and not torch.cuda.is_available():
+        pytest.skip(reason='CUDA is not available, skipping test.')
+
     torch.manual_seed(0)  # For reproducibility
     images = process_images('images/muller_brown.json', device=device, dtype=dtype)
     path = get_path('mlp', images=images, device=device, dtype=dtype)
@@ -235,9 +241,12 @@ def test_unwrap():
 )
 @pytest.mark.parametrize(
     'device',
-    [torch.device('cpu'), torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')]
+    [torch.device('cpu'), torch.device('cuda')]
 )
 def test_velocity(raw_images, path_name, dtype, device):
+    if device.type == 'cuda' and not torch.cuda.is_available():
+        pytest.skip(reason='CUDA is not available, skipping test.')
+        
     images = process_images(raw_images, device=device, dtype=dtype)
     path = get_path(path_name, images=images, device=device, dtype=dtype)
     velocity = path(torch.tensor([0.5], device=device, dtype=dtype), return_velocities=True).velocities
@@ -256,9 +265,12 @@ def test_velocity(raw_images, path_name, dtype, device):
 )
 @pytest.mark.parametrize(
     'device',
-    [torch.device('cpu'), torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')]
+    [torch.device('cpu'), torch.device('cuda')]
 )
 def test_set_potential(path_name, dtype, device):
+    if device.type == 'cuda' and not torch.cuda.is_available():
+        pytest.skip(reason='CUDA is not available, skipping test.')
+        
     images = process_images('images/muller_brown.json', device=device, dtype=dtype)
     path = get_path(path_name, images=images, device=device, dtype=dtype)
     assert path.potential is None

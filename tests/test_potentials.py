@@ -21,9 +21,12 @@ from popcornn.potentials import get_potential
 )
 @pytest.mark.parametrize(
     'device',
-    [torch.device('cpu'), torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')],
+    [torch.device('cpu'), torch.device('cuda')]
 )
 def test_muller_brown(dtype, device):
+    if device.type == 'cuda' and not torch.cuda.is_available():
+        pytest.skip(reason='CUDA is not available, skipping test.')
+        
     images = process_images('images/muller_brown.json', device=device, dtype=dtype)
     path = get_path('linear', images=images, device=device, dtype=dtype)
     potential = get_potential('muller_brown', images=images, device=device, dtype=dtype)
@@ -62,9 +65,12 @@ def test_muller_brown(dtype, device):
 )
 @pytest.mark.parametrize(
     'device',
-    [torch.device('cpu'), torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')],
+    [torch.device('cpu'), torch.device('cuda')]
 )
 def test_wolfe(dtype, device):
+    if device.type == 'cuda' and not torch.cuda.is_available():
+        pytest.skip(reason='CUDA is not available, skipping test.')
+        
     images = process_images('images/wolfe.json', device=device, dtype=dtype)
     path = get_path('linear', images=images, device=device, dtype=dtype)
     potential = get_potential('wolfe_schlegel',images=images, device=device, dtype=dtype)
@@ -103,9 +109,12 @@ def test_wolfe(dtype, device):
 )
 @pytest.mark.parametrize(
     'device',
-    [torch.device('cpu'), torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')],
+    [torch.device('cpu'), torch.device('cuda')]
 )
 def test_lennard_jones(dtype, device):
+    if device.type == 'cuda' and not torch.cuda.is_available():
+        pytest.skip(reason='CUDA is not available, skipping test.')
+        
     raw_images = [read('images/LJ13.xyz', index=i) for i in (0, 1, 1)]
     interpolate(raw_images)
     for image in raw_images:
@@ -183,9 +192,12 @@ def test_lennard_jones(dtype, device):
 )
 @pytest.mark.parametrize(
     'device',
-    [torch.device('cpu'), torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')],
+    [torch.device('cpu'), torch.device('cuda')]
 )
 def test_repel(dtype, device):
+    if device.type == 'cuda' and not torch.cuda.is_available():
+        pytest.skip(reason='CUDA is not available, skipping test.')
+        
     class RepelCalculator(Calculator):
         '''
         Revised from ASE LennardJones Calculator to use the repulsive potential
@@ -308,9 +320,12 @@ def test_repel(dtype, device):
 )
 @pytest.mark.parametrize(
     'device',
-    [torch.device('cpu'), torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')],
+    [torch.device('cpu'), torch.device('cuda')]
 )
 def test_uma(dtype, device):
+    if device.type == 'cuda' and not torch.cuda.is_available():
+        pytest.skip(reason='CUDA is not available, skipping test.')
+        
     if dtype == torch.float64:
         pytest.skip("UMA potential is not supported for float64 due to precision issues.")
 

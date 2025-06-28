@@ -17,9 +17,12 @@ from popcornn.tools import process_images
 )
 @pytest.mark.parametrize(
     'device', 
-    [torch.device('cpu'), torch.device('cuda')] if torch.cuda.is_available() else [torch.device('cpu')]
+    [torch.device('cpu'), torch.device('cuda')]
 )
 def test_list(raw_images, dtype, device):
+    if device.type == 'cuda' and not torch.cuda.is_available():
+        pytest.skip(reason='CUDA is not available, skipping test.')
+        
     images = process_images(raw_images, device=device, dtype=dtype)
     assert images.image_type is list
     assert images.positions.shape == (2, 2)
@@ -49,9 +52,12 @@ def test_list(raw_images, dtype, device):
 )
 @pytest.mark.parametrize(
     'device',
-    [torch.device('cpu'), torch.device('cuda')] if torch.cuda.is_available() else [torch.device('cpu')]
+    [torch.device('cpu'), torch.device('cuda')]
 )
 def test_numpy(raw_images, dtype, device):
+    if device.type == 'cuda' and not torch.cuda.is_available():
+        pytest.skip(reason='CUDA is not available, skipping test.')
+        
     images = process_images(raw_images, device=device, dtype=dtype)
     assert images.image_type is np.ndarray
     assert images.positions.shape == (2, 2)
@@ -81,9 +87,12 @@ def test_numpy(raw_images, dtype, device):
 )
 @pytest.mark.parametrize(
     'device', 
-    [torch.device('cpu'), torch.device('cuda')] if torch.cuda.is_available() else [torch.device('cpu')]
+    [torch.device('cpu'), torch.device('cuda')]
 )
 def test_torch(raw_images, dtype, device):
+    if device.type == 'cuda' and not torch.cuda.is_available():
+        pytest.skip(reason='CUDA is not available, skipping test.')
+        
     images = process_images(raw_images, device=device, dtype=dtype)
     assert images.image_type is torch.Tensor
     assert images.positions.shape == (2, 2)
@@ -113,9 +122,12 @@ def test_torch(raw_images, dtype, device):
 )
 @pytest.mark.parametrize(
     'device',
-    [torch.device('cpu'), torch.device('cuda')] if torch.cuda.is_available() else [torch.device('cpu')]
+    [torch.device('cpu'), torch.device('cuda')]
 )
 def test_xyz(raw_images, dtype, device):
+    if device.type == 'cuda' and not torch.cuda.is_available():
+        pytest.skip(reason='CUDA is not available, skipping test.')
+        
     images = process_images(raw_images, device=device, dtype=dtype)
     assert images.image_type is Atoms
     assert images.positions.shape == (2, 42)
@@ -217,9 +229,12 @@ def test_xyz(raw_images, dtype, device):
 )
 @pytest.mark.parametrize(
     'device',
-    [torch.device('cpu'), torch.device('cuda')] if torch.cuda.is_available() else [torch.device('cpu')]
+    [torch.device('cpu'), torch.device('cuda')]
 )
 def test_traj(raw_images, dtype, device):
+    if device.type == 'cuda' and not torch.cuda.is_available():
+        pytest.skip(reason='CUDA is not available, skipping test.')
+        
     images = process_images(raw_images, device=device, dtype=dtype)
     assert images.image_type is Atoms
     assert images.positions.shape == (2, 42)
@@ -355,7 +370,8 @@ def test_xyz_with_intermediates(raw_images):
                  5.54306086e+00,  3.82423157e+00,  2.38682326e+01,
                  5.70076617e+00,  2.04184586e+00,  2.36755104e+01,
                  7.10627032e+00,  2.55772780e+00,  2.18160334e+01,
-                 6.48094153e+00,  3.25790627e+00,  2.21248448e+01],
+                 6.48094153e+00,  3.25790627e+00,  2.21248448e+01
+            ],
             [
                 -1.63483589e-33,  2.66988983e-17,  1.26533470e+01,
                 -3.32956078e-16,  5.43758583e+00,  1.58254805e+01,
@@ -370,7 +386,8 @@ def test_xyz_with_intermediates(raw_images):
                  5.55525247e+00,  3.77731140e+00,  2.42357552e+01,
                  5.72745355e+00,  2.00193796e+00,  2.40146754e+01,
                  7.08780168e+00,  2.57865129e+00,  2.21199307e+01,
-                 6.45244096e+00,  3.25444780e+00,  2.24574392e+01],
+                 6.45244096e+00,  3.25444780e+00,  2.24574392e+01
+            ],
             [
                 -1.63483589e-33,  2.66988983e-17,  1.26533470e+01,
                 -3.32956078e-16,  5.43758583e+00,  1.58254805e+01,
@@ -385,7 +402,8 @@ def test_xyz_with_intermediates(raw_images):
                  5.56010826e+00,  3.76392243e+00,  2.45780156e+01,
                  5.71988902e+00,  1.98956967e+00,  2.43410772e+01,
                  7.08357050e+00,  2.56645238e+00,  2.24554430e+01,
-                 6.46079946e+00,  3.24939027e+00,  2.27978230e+01],
+                 6.46079946e+00,  3.24939027e+00,  2.27978230e+01
+            ],
             [
                 -1.63483589e-33,  2.66988983e-17,  1.26533470e+01,
                 -3.32956078e-16,  5.43758583e+00,  1.58254805e+01,
@@ -400,7 +418,8 @@ def test_xyz_with_intermediates(raw_images):
                  5.57067210e+00,  3.74052122e+00,  2.49005699e+01,
                  5.72891552e+00,  1.96471071e+00,  2.46761889e+01,
                  7.06300793e+00,  2.49879235e+00,  2.27875590e+01,
-                 6.48599054e+00,  3.21578787e+00,  2.31339583e+01],
+                 6.48599054e+00,  3.21578787e+00,  2.31339583e+01
+            ],
             [
                 -1.63483589e-33,  2.66988983e-17,  1.26533470e+01,
                 -3.32956078e-16,  5.43758583e+00,  1.58254805e+01,
@@ -415,7 +434,8 @@ def test_xyz_with_intermediates(raw_images):
                  5.57465199e+00,  3.70695650e+00,  2.52125765e+01,
                  5.72749812e+00,  1.92820446e+00,  2.50131012e+01,
                  7.06877282e+00,  2.42614850e+00,  2.31248277e+01,
-                 6.50638338e+00,  3.15533186e+00,  2.34636008e+01],
+                 6.50638338e+00,  3.15533186e+00,  2.34636008e+01
+            ],
             [
                 -1.63483589e-33,  2.66988983e-17,  1.26533470e+01,
                 -3.32956078e-16,  5.43758583e+00,  1.58254805e+01,
@@ -430,7 +450,8 @@ def test_xyz_with_intermediates(raw_images):
                  5.58132576e+00,  3.68112164e+00,  2.55535292e+01,
                  5.73125644e+00,  1.90175181e+00,  2.53623762e+01,
                  7.06440106e+00,  2.40165189e+00,  2.34631444e+01,
-                 6.49792042e+00,  3.12446294e+00,  2.38029024e+01],
+                 6.49792042e+00,  3.12446294e+00,  2.38029024e+01
+            ],
             [
                 -1.63483589e-33,  2.66988983e-17,  1.26533470e+01,
                 -3.32956078e-16,  5.43758583e+00,  1.58254805e+01,
@@ -445,7 +466,8 @@ def test_xyz_with_intermediates(raw_images):
                  5.58112319e+00,  3.64953860e+00,  2.59178239e+01,
                  5.72799994e+00,  1.87485273e+00,  2.57031954e+01,
                  7.06390461e+00,  2.39709323e+00,  2.38125245e+01,
-                 6.50461418e+00,  3.11774430e+00,  2.41639952e+01],
+                 6.50461418e+00,  3.11774430e+00,  2.41639952e+01
+            ],
             [
                 -1.63483589e-33,  2.66988983e-17,  1.26533470e+01,
                 -3.32956078e-16,  5.43758583e+00,  1.58254805e+01,
@@ -460,35 +482,40 @@ def test_xyz_with_intermediates(raw_images):
                  5.57317626e+00,  3.60834340e+00,  2.62929044e+01,
                  5.72442831e+00,  1.83552366e+00,  2.60565735e+01,
                  7.05571815e+00,  2.38485823e+00,  2.41742361e+01,
-                 6.50061551e+00,  3.10201935e+00,  2.45380237e+01],
-            [-1.63483589e-33,  2.66988983e-17,  1.26533470e+01,
+                 6.50061551e+00,  3.10201935e+00,  2.45380237e+01
+            ],
+            [
+                -1.63483589e-33,  2.66988983e-17,  1.26533470e+01,
                 -3.32956078e-16,  5.43758583e+00,  1.58254805e+01,
-                4.52291775e+00,  2.71879292e+00,  1.42394133e+01,
-                4.52291775e+00,  8.15637875e+00,  1.20838213e+01,
-                8.81917382e+00,  2.80714940e-01,  1.80992311e+01,
-                8.54527344e+00,  5.76748674e+00,  2.12032472e+01,
-                4.17566636e+00,  2.85850270e+00,  1.97507938e+01,
-                4.52291775e+00,  8.15637875e+00,  1.74115467e+01,
-                6.23309175e+00,  2.77641132e+00,  2.62765055e+01,
-                7.15905818e+00,  2.77500157e+00,  2.68849723e+01,
-                5.56930396e+00,  3.57379200e+00,  2.66475955e+01,
-                5.72132246e+00,  1.80251514e+00,  2.64075818e+01,
-                7.06157166e+00,  2.36553046e+00,  2.45311719e+01,
-                6.49470487e+00,  3.07287893e+00,  2.48921559e+01],
-            [-1.63483589e-33,  2.66988983e-17,  1.26533470e+01,
+                 4.52291775e+00,  2.71879292e+00,  1.42394133e+01,
+                 4.52291775e+00,  8.15637875e+00,  1.20838213e+01,
+                 8.81917382e+00,  2.80714940e-01,  1.80992311e+01,
+                 8.54527344e+00,  5.76748674e+00,  2.12032472e+01,
+                 4.17566636e+00,  2.85850270e+00,  1.97507938e+01,
+                 4.52291775e+00,  8.15637875e+00,  1.74115467e+01,
+                 6.23309175e+00,  2.77641132e+00,  2.62765055e+01,
+                 7.15905818e+00,  2.77500157e+00,  2.68849723e+01,
+                 5.56930396e+00,  3.57379200e+00,  2.66475955e+01,
+                 5.72132246e+00,  1.80251514e+00,  2.64075818e+01,
+                 7.06157166e+00,  2.36553046e+00,  2.45311719e+01,
+                 6.49470487e+00,  3.07287893e+00,  2.48921559e+01
+            ],
+            [
+                -1.63483589e-33,  2.66988983e-17,  1.26533470e+01,
                 -3.32956078e-16,  5.43758583e+00,  1.58254805e+01,
-                4.52291775e+00,  2.71879292e+00,  1.42394133e+01,
-                4.52291775e+00,  8.15637875e+00,  1.20838213e+01,
-                8.80245269e+00,  2.10609936e-01,  1.81067186e+01,
-                8.48235489e+00,  5.79598315e+00,  2.10305286e+01,
-                4.11078265e+00,  3.01817014e+00,  1.97285622e+01,
-                4.52291775e+00,  8.15637875e+00,  1.74115467e+01,
-                6.21565284e+00,  2.73169354e+00,  2.65028971e+01,
-                7.12057573e+00,  2.75557713e+00,  2.71421208e+01,
-                5.55201927e+00,  3.55544153e+00,  2.68110436e+01,
-                5.68376604e+00,  1.77336548e+00,  2.66685650e+01,
-                7.13484263e+00,  2.24811624e+00,  2.48254820e+01,
-                6.52373510e+00,  2.95101175e+00,  2.51147421e+01]
+                 4.52291775e+00,  2.71879292e+00,  1.42394133e+01,
+                 4.52291775e+00,  8.15637875e+00,  1.20838213e+01,
+                 8.80245269e+00,  2.10609936e-01,  1.81067186e+01,
+                 8.48235489e+00,  5.79598315e+00,  2.10305286e+01,
+                 4.11078265e+00,  3.01817014e+00,  1.97285622e+01,
+                 4.52291775e+00,  8.15637875e+00,  1.74115467e+01,
+                 6.21565284e+00,  2.73169354e+00,  2.65028971e+01,
+                 7.12057573e+00,  2.75557713e+00,  2.71421208e+01,
+                 5.55201927e+00,  3.55544153e+00,  2.68110436e+01,
+                 5.68376604e+00,  1.77336548e+00,  2.66685650e+01,
+                 7.13484263e+00,  2.24811624e+00,  2.48254820e+01,
+                 6.52373510e+00,  2.95101175e+00,  2.51147421e+01
+            ]
         ]
     ))
     assert images.fix_positions.shape == (42,)
@@ -550,9 +577,12 @@ def test_xyz_with_intermediates(raw_images):
 
 @pytest.mark.parametrize(
     'device',
-    [torch.device('cpu'), torch.device('cuda')] if torch.cuda.is_available() else [torch.device('cpu')]
+    [torch.device('cpu'), torch.device('cuda')]
 )
 def test_charge_spin(device):
+    if device.type == 'cuda' and not torch.cuda.is_available():
+        pytest.skip(reason='CUDA is not available, skipping test.')
+        
     images = process_images('images/T1x.xyz', device=device, dtype=torch.float32)
     assert images.charge is not None
     assert images.charge.shape == ()
