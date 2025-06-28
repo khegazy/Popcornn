@@ -299,3 +299,65 @@ def test_set_potential(path_name, dtype, device):
     assert path_output.forces.requires_grad is True
     with pytest.raises(ValueError, match='Potential MullerBrown cannot calculate forces_decomposed'):
         path(torch.tensor([0.5], requires_grad=True, device=device, dtype=dtype), return_forces_decomposed=True)
+
+    torch.manual_seed(0)  # For reproducibility
+    images = process_images('images/LJ35.xyz', device=device, dtype=dtype)
+    path = get_path(path_name, images=images, device=device, dtype=dtype)
+    potential = get_potential('lennard_jones', images=images, device=device, dtype=dtype)
+    path.set_potential(potential)
+    assert path.potential is not None
+    path_output = path(torch.tensor([0.5], requires_grad=True, device=device, dtype=dtype), return_energies=True)
+    assert path_output.energies is not None
+    assert path_output.energies.shape == (1, 1)
+    assert path_output.energies.device.type == device.type
+    assert path_output.energies.dtype == dtype
+    assert torch.allclose(
+        path_output.energies,
+        potential(path(torch.tensor([0.5], requires_grad=True, device=device, dtype=dtype)).positions).energies,
+        atol=1e-5
+    )
+    assert path_output.energies.requires_grad is True
+    path_output = path(torch.tensor([0.5], requires_grad=True, device=device, dtype=dtype), return_energies_decomposed=True)
+    assert path_output.energies_decomposed is not None
+    # assert path_output.energies_decomposed.shape == (1, 4316)
+    assert (
+        path_output.energies_decomposed.ndim == 2 
+        and path_output.energies_decomposed.shape[0] == 1 
+        and 4000 < path_output.energies_decomposed.shape[1] < 4500
+    )
+    assert path_output.energies_decomposed.device.type == device.type
+    assert path_output.energies_decomposed.dtype == dtype
+    assert torch.allclose(
+        path_output.energies_decomposed,
+        potential(path(torch.tensor([0.5], requires_grad=True, device=device, dtype=dtype)).positions).energies_decomposed,
+        atol=1e-5
+    )
+    assert path_output.energies_decomposed.grad_fn is not None
+    path_output = path(torch.tensor([0.5], requires_grad=True, device=device, dtype=dtype), return_forces=True)
+    assert path_output.forces is not None
+    assert path_output.forces.shape == (1, 105)
+    assert path_output.forces.device.type == device.type
+    assert path_output.forces.dtype == dtype
+    assert torch.allclose(
+        path_output.forces,
+        potential(path(torch.tensor([0.5], requires_grad=True, device=device, dtype=dtype)).positions).forces,
+        atol=1e-5
+    )
+    assert path_output.forces.requires_grad is True
+    path_output = path(torch.tensor([0.5], requires_grad=True, device=device, dtype=dtype), return_forces_decomposed=True)
+    assert path_output.forces_decomposed is not None
+    # assert path_output.forces_decomposed.shape == (1, 4316, 105)
+    assert (
+        path_output.forces_decomposed.ndim == 3
+        and path_output.forces_decomposed.shape[0] == 1
+        and 4000 < path_output.forces_decomposed.shape[1] < 4500
+        and path_output.forces_decomposed.shape[2] == 105
+    )
+    assert path_output.forces_decomposed.device.type == device.type
+    assert path_output.forces_decomposed.dtype == dtype
+    assert torch.allclose(
+        path_output.forces_decomposed,
+        potential(path(torch.tensor([0.5], requires_grad=True, device=device, dtype=dtype)).positions).forces_decomposed,
+        atol=1e-5
+    )
+    assert path_output.forces_decomposed.grad_fn is not None
