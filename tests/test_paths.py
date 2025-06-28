@@ -3,6 +3,7 @@ import torch
 
 from popcornn.tools import process_images
 from popcornn.paths import get_path
+from popcornn.potentials import get_potential
 
 
 @pytest.mark.parametrize(
@@ -222,7 +223,7 @@ def test_unwrap():
 
 @pytest.mark.parametrize(
     'raw_images',
-    ['images/wolfe.json', 'images/LJ13.xyz', 'images/LJ35.xyz']
+    ['images/muller_brown.json', 'images/LJ13.xyz', 'images/LJ35.xyz']
 )
 @pytest.mark.parametrize(
     'path_name',
@@ -243,3 +244,33 @@ def test_velocity(raw_images, path_name, dtype, device):
     assert velocity is not None
     finite_difference = path(torch.tensor([0.5 - 1e-3, 0.5 + 1e-3], device=device, dtype=dtype)).positions.diff(dim=0) / (2 * 1e-3)
     assert torch.allclose(velocity, finite_difference, atol=1e-3)
+
+
+@pytest.mark.parametrize(
+    'path_name',
+    ['linear', 'mlp']
+)
+@pytest.mark.parametrize(
+    'dtype',
+    [torch.float32, torch.float64]
+)
+@pytest.mark.parametrize(
+    'device',
+    [torch.device('cpu'), torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')]
+)
+def test_set_potential(path_name, dtype, device):
+    images = process_images('images/muller_brown.json', device=device, dtype=dtype)
+    path = get_path(path_name, images=images, device=device, dtype=dtype)
+    assert path.potential is None
+    with pytest.raises(AssertionError, match='Potential must be set by \'set_potential\' before calling \'forward\''):
+        path(torch.tensor([0.5], device=device, dtype=dtype), return_energies=True)
+    with pytest.raises(AssertionError, match='Potential must be set by \'set_potential\' before calling \'forward\''):
+        path(torch.tensor([0.5], device=device, dtype=dtype), return_energies_decomposed=True)
+    with pytest.raises(AssertionError, match='Potential must be set by \'set_potential\' before calling \'forward\''):
+        path(torch.tensor([0.5], device=device, dtype=dtype), return_forces=True)
+    with pytest.raises(AssertionError, match='Potential must be set by \'set_potential\' before calling \'forward\''):
+        path(torch.tensor([0.5], device=device, dtype=dtype), return_forces_decomposed=True)
+    potential = get_potential('muller_brown', images=images, device=device, dtype=dtype)
+    path.set_potential(potential)
+    assert path.potential is not None
+    path_output = path(torch.tensor([0.5], requires_grad=True, device=device, dtype=dtype), return_energies=True)

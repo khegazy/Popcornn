@@ -206,6 +206,7 @@ class BasePath(torch.nn.Module):
         if self.transform is not None:
             positions = self.transform(positions)
         if return_energies or return_energies_decomposed or return_forces or return_forces_decomposed:
+            assert self.potential is not None, "Potential must be set by \'set_potential\' before calling \'forward\'"
             potential_output = self.potential(positions) 
             self._check_output(
                 potential_output,
