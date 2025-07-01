@@ -14,6 +14,9 @@ def get_potential(name, **kwargs):
     elif name == "constant":
         from .constant import Constant
         return Constant(**kwargs)
+    elif name == "sphere":
+        from .sphere import Sphere
+        return Sphere(**kwargs)
     elif name == "lennard_jones":
         from .lennard_jones import LennardJones
         return LennardJones(**kwargs)

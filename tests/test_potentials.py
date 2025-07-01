@@ -23,6 +23,43 @@ from popcornn.potentials import get_potential
     'device',
     [torch.device('cpu'), torch.device('cuda')]
 )
+def test_sphere(dtype, device):
+    if device.type == 'cuda' and not torch.cuda.is_available():
+        pytest.skip(reason='CUDA is not available, skipping test.')
+        
+    images = process_images('images/sphere.json', device=device, dtype=dtype)
+    path = get_path('linear', images=images, device=device, dtype=dtype)
+    potential = get_potential('sphere', images=images, device=device, dtype=dtype)
+
+    potential_output = potential(path(torch.tensor([0.0, 0.5, 1.0], requires_grad=True, device=device, dtype=dtype)).positions)
+    assert potential_output.energies.shape == (3, 1)
+    assert potential_output.energies.device.type == device.type
+    assert potential_output.energies.dtype == dtype
+    assert torch.allclose(potential_output.energies,
+        torch.tensor([[2.0], [1.0], [2.0]], device=device, dtype=dtype),
+        atol=1e-5
+    )
+    assert potential_output.energies.grad_fn is not None
+    assert potential_output.energies_decomposed is None
+    assert potential_output.forces.shape == (3, 2)
+    assert potential_output.forces.device.type == device.type
+    assert potential_output.forces.dtype == dtype
+    assert torch.allclose(potential_output.forces,
+        torch.tensor([[2.0, -2.0], [0.0, -2.0], [-2.0, -2.0]], device=device, dtype=dtype),
+        atol=1e-5
+    )
+    assert potential_output.forces.grad_fn is not None
+    assert potential_output.forces_decomposed is None
+
+
+@pytest.mark.parametrize(
+    'dtype',
+    [torch.float32, torch.float64],
+)
+@pytest.mark.parametrize(
+    'device',
+    [torch.device('cpu'), torch.device('cuda')]
+)
 def test_muller_brown(dtype, device):
     if device.type == 'cuda' and not torch.cuda.is_available():
         pytest.skip(reason='CUDA is not available, skipping test.')
