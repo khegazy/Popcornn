@@ -8,8 +8,12 @@ conda create --name popcornn python=3.12
 conda activate popcornn
 ```
 
-Now, you can install Popcornn in the conda environment by cloning this repository:
+Now, you can install Popcornn in the conda environment by cloning this repository, but first you must install torchpathdiffeq which is being developed in parallel with popcornn:
 ```
+git clone https://github.com/khegazy/torchpathdiffeq.git
+
+pip install -e ./torchpathdiffeq
+
 git clone https://github.com/khegazy/popcornn.git
 
 pip install -e ./popcornn
